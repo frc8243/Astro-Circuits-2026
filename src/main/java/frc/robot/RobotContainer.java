@@ -49,12 +49,19 @@ public class RobotContainer {
   private SwerveSubsystem drivebase = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
           "swerve/alphabot"));
   private String serialNum = System.getenv("serialnum");
+  private  SwerveInputStream driveAngularVelocity;
+  private  SwerveInputStream driveDirectAngle;
+  private  SwerveInputStream driveRobotOriented;
+  private  SwerveInputStream driveAngularVelocityKeyboard;
+  private SwerveInputStream driveDirectAngleKeyboard;
 
+  void createSwerveInputStreams()
+  {
   /**
    * Converts driver input into a field-relative ChassisSpeeds that is controlled
    * by angular velocity.
    */
-  SwerveInputStream driveAngularVelocity = SwerveInputStream.of(drivebase.getSwerveDrive(),
+  driveAngularVelocity = SwerveInputStream.of(drivebase.getSwerveDrive(),
       () -> driverXbox.getLeftY() * -1,
       () -> driverXbox.getLeftX() * -1)
       .withControllerRotationAxis(driverXbox::getRightX)
@@ -66,7 +73,7 @@ public class RobotContainer {
    * Clone's the angular velocity input stream and converts it to a fieldRelative
    * input stream.
    */
-  SwerveInputStream driveDirectAngle = driveAngularVelocity.copy().withControllerHeadingAxis(driverXbox::getRightX,
+   driveDirectAngle = driveAngularVelocity.copy().withControllerHeadingAxis(driverXbox::getRightX,
       driverXbox::getRightY)
       .headingWhile(true);
 
@@ -74,10 +81,10 @@ public class RobotContainer {
    * Clone's the angular velocity input stream and converts it to a robotRelative
    * input stream.
    */
-  SwerveInputStream driveRobotOriented = driveAngularVelocity.copy().robotRelative(true)
+   driveRobotOriented = driveAngularVelocity.copy().robotRelative(true)
       .allianceRelativeControl(false);
 
-  SwerveInputStream driveAngularVelocityKeyboard = SwerveInputStream.of(drivebase.getSwerveDrive(),
+ driveAngularVelocityKeyboard = SwerveInputStream.of(drivebase.getSwerveDrive(),
       () -> -driverXbox.getLeftY(),
       () -> -driverXbox.getLeftX())
       .withControllerRotationAxis(() -> driverXbox.getRawAxis(
@@ -86,7 +93,7 @@ public class RobotContainer {
       .scaleTranslation(0.8)
       .allianceRelativeControl(true);
   // Derive the heading axis with math!
-  SwerveInputStream driveDirectAngleKeyboard = driveAngularVelocityKeyboard.copy()
+   driveDirectAngleKeyboard = driveAngularVelocityKeyboard.copy()
       .withControllerHeadingAxis(() -> Math.sin(
           driverXbox.getRawAxis(
               2) *
@@ -105,9 +112,7 @@ public class RobotContainer {
       .translationHeadingOffset(true)
       .translationHeadingOffset(Rotation2d.fromDegrees(
           0));
-
-private static final Pose2d AUTO_START_POSE=new Pose2d(2, 6, Rotation2d.fromDegrees(0));
-
+  }
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
@@ -118,12 +123,13 @@ private static final Pose2d AUTO_START_POSE=new Pose2d(2, 6, Rotation2d.fromDegr
     // the serial number to the 2025 is 034159F4
     // 031823e8
     System.out.println("serialnum is " + serialNum);
-    // if (serialNum.equals("034159f4")) {
-    //   drivebase = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
-    //       "swerve/2025"));
-    // } else if (serialNum.equals("031823e8"))
-    //   drivebase = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
-    //       "swerve/alphabot"));
+    if (serialNum.equals("034159f4")) {
+      drivebase = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
+          "swerve/2025"));
+    } else if (serialNum.equals("031823e8"))
+      drivebase = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
+          "swerve/alphabot"));
+    createSwerveInputStreams();
     // Configure the trigger bindings
     configureBindings();
     DriverStation.silenceJoystickConnectionWarning(true);
@@ -212,9 +218,9 @@ driverXbox.rightBumper().whileTrue(m_intake.in(0.8));*/
     //driverXbox.a().whileTrue(new Eject(fuelSubsystem));
     fuelSubsystem.setDefaultCommand(fuelSubsystem.run(()->fuelSubsystem.stop()));
 
-    driverXbox.povUp()
+  /*   driverXbox.povUp()
          .onTrue(Commands.runOnce(
-               ()->drivebase.resetOdometry(AUTO_START_POSE)));
+               ()->drivebase.resetOdometry(AUTO_START_POSE)));*/
   }
 
   
