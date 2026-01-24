@@ -19,6 +19,12 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
+import frc.robot.commands.Eject;
+import frc.robot.commands.Intake;
+import frc.robot.commands.LaunchSequence;
+import frc.robot.subsystems.CANFuelSubsystem;
+import frc.robot.subsystems.IntakeSubsystem;
+import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 import java.io.File;
 import swervelib.SwerveInputStream;
@@ -36,8 +42,10 @@ public class RobotContainer {
   // Replace with CommandPS4Controller or CommandJoystick if needed
   final CommandXboxController driverXbox = new CommandXboxController(0);
   // The robot's subsystems and commands are defined here...
+ // private ShooterSubsystem m_shooter = new ShooterSubsystem();
+  //private IntakeSubsystem m_intake = new IntakeSubsystem();
+    private final CANFuelSubsystem fuelSubsystem = new CANFuelSubsystem();
 
-  
   private SwerveSubsystem drivebase = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
           "swerve/alphabot"));
   private String serialNum = System.getenv("serialnum");
@@ -98,9 +106,13 @@ public class RobotContainer {
       .translationHeadingOffset(Rotation2d.fromDegrees(
           0));
 
+private static final Pose2d AUTO_START_POSE=new Pose2d(2, 6, Rotation2d.fromDegrees(0));
+
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
+
+
   public RobotContainer() {
     // the serial number to the alphabot is 031823E8
     // the serial number to the 2025 is 034159F4
@@ -116,6 +128,10 @@ public class RobotContainer {
     configureBindings();
     DriverStation.silenceJoystickConnectionWarning(true);
     NamedCommands.registerCommand("test", Commands.print("I EXIST"));
+
+      //  m_shooter.setDefaultCommand(m_shooter.setDutyCycle(0));
+        //m_intake.setDefaultCommand(m_intake.stop());
+//fuelSubsystem.setDefaultCommand(fuelSubsystem.stop());
   }
 
   /**
@@ -173,25 +189,35 @@ public class RobotContainer {
       // );
 
     }
-    if (DriverStation.isTest()) {
-      drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity); // Overrides drive command above!
-
-      driverXbox.x().whileTrue(Commands.runOnce(drivebase::lock, drivebase).repeatedly());
-      driverXbox.y().whileTrue(drivebase.driveToDistanceCommand(1.0, 0.2));
-      driverXbox.start().onTrue((Commands.runOnce(drivebase::zeroGyro)));
-      driverXbox.back().whileTrue(drivebase.centerModulesCommand());
-      driverXbox.leftBumper().onTrue(Commands.none());
-      driverXbox.rightBumper().onTrue(Commands.none());
-    } else {
+   
       driverXbox.a().onTrue((Commands.runOnce(drivebase::zeroGyro)));
       driverXbox.x().onTrue(Commands.runOnce(drivebase::addFakeVisionReading));
-      driverXbox.start().whileTrue(Commands.none());
+      //driverXbox.start().whileTrue(Commands.none());
       driverXbox.back().whileTrue(Commands.none());
-      driverXbox.leftBumper().whileTrue(Commands.runOnce(drivebase::lock, drivebase).repeatedly());
-      driverXbox.rightBumper().onTrue(Commands.none());
-    }
+      //driverXbox.leftBumper().whileTrue(Commands.runOnce(drivebase::lock, drivebase).repeatedly());
+      //driverXbox.rightBumper().onTrue(Commands.none());
+     /*  driverXbox.y().whileTrue(m_shooter.setDutyCycle(0.5));
+      driverXbox.b().whileTrue(m_shooter.setDutyCycle(-0.5));
+driverXbox.leftBumper().whileTrue(m_intake.out(0.8));
+driverXbox.rightBumper().whileTrue(m_intake.in(0.8));*/
 
+    driverXbox.leftBumper().whileTrue(new Intake(fuelSubsystem));
+    //.toggleOnFalse(fuelSubsystem.stop());
+    // While the right bumper on the operator controller is held, spin up for 1
+    // second, then launch fuel. When the button is released, stop.
+    driverXbox.rightBumper().whileTrue(new LaunchSequence(fuelSubsystem));
+    // While the A button is held on the operator controller, eject fuel back out
+    // the intake
+   
+    //driverXbox.a().whileTrue(new Eject(fuelSubsystem));
+    fuelSubsystem.setDefaultCommand(fuelSubsystem.run(()->fuelSubsystem.stop()));
+
+    driverXbox.povUp()
+         .onTrue(Commands.runOnce(
+               ()->drivebase.resetOdometry(AUTO_START_POSE)));
   }
+
+  
 
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.

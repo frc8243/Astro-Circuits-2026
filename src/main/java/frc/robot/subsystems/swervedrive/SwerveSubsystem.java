@@ -17,6 +17,8 @@ import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.util.DriveFeedforwards;
 import com.pathplanner.lib.util.swerve.SwerveSetpoint;
 import com.pathplanner.lib.util.swerve.SwerveSetpointGenerator;
+
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -33,7 +35,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
 import frc.robot.Constants;
-import frc.robot.subsystems.swervedrive.Vision.Cameras;
+//import frc.robot.subsystems.swervedrive.Vision.Cameras;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -63,11 +65,12 @@ public class SwerveSubsystem extends SubsystemBase
   /**
    * Enable vision odometry updates while driving.
    */
-  private final boolean     visionDriveTest = false;
+  private final boolean     visionDriveTest = true;
   /**
-   * PhotonVision class to keep an accurate odometry.
+   * Limlight class to keep an accurate odometry.
+   * LL4 IP--> http://10.82.43.15:5800 
    */
-  private       Vision      vision;
+  private       Vision      vision=new Vision("limelight-main");
 
   /**
    * Initialize {@link SwerveDrive} with the directory provided.
@@ -104,7 +107,6 @@ public class SwerveSubsystem extends SubsystemBase
     // swerveDrive.pushOffsetsToEncoders(); // Set the absolute encoder to be used over the internal encoder and push the offsets onto it. Throws warning if not possible
     if (visionDriveTest)
     {
-      setupPhotonVision();
       // Stop the odometry thread if we are using vision that way we can synchronize updates better.
       swerveDrive.stopOdometryThread();
     }
@@ -127,13 +129,7 @@ public class SwerveSubsystem extends SubsystemBase
                                              Rotation2d.fromDegrees(0)));
   }
 
-  /**
-   * Setup the photon vision class.
-   */
-  public void setupPhotonVision()
-  {
-    vision = new Vision(swerveDrive::getPose, swerveDrive.field);
-  }
+
 
   @Override
   public void periodic()
@@ -142,7 +138,7 @@ public class SwerveSubsystem extends SubsystemBase
     if (visionDriveTest)
     {
       swerveDrive.updateOdometry();
-      vision.updatePoseEstimation(swerveDrive);
+      vision.updatePose(swerveDrive);
     }
   }
 
@@ -227,25 +223,30 @@ public class SwerveSubsystem extends SubsystemBase
    *
    * @return A {@link Command} which will run the alignment.
    */
-  public Command aimAtTarget(Cameras camera)
+  public Command aimAtTarget()
   {
-
-    return run(() -> {
-      Optional<PhotonPipelineResult> resultO = camera.getBestResult();
-      if (resultO.isPresent())
-      {
-        var result = resultO.get();
-        if (result.hasTargets())
-        {
-          drive(getTargetSpeeds(0,
-                                0,
-                                Rotation2d.fromDegrees(result.getBestTarget()
-                                                             .getYaw()))); // Not sure if this will work, more math may be required.
-        }
-      }
-    });
+return run(() -> {
+  //do we have a target
+    if(!LimelightHelpers.getTV("limelight-main")){
+      // no target- do nothing
+      drive(new ChassisSpeeds(0,0,0));
+      return;
   }
+  //horizontal error to target
+  double tx = LimelightHelpers.getTX("limelight-main"); // degrees
 
+  //proportinal control (tune this)
+double kp = 0.035;
+double rotationspeed = -kp *tx;
+
+// clamp rotation
+rotationspeed=MathUtil.clamp(rotationspeed, -1.5, 1.5);
+
+//Rotate to reduce tx error
+drive(new ChassisSpeeds(0,0, rotationspeed));
+
+});
+  }
   /**
    * Get the path follower with events.
    *

@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
@@ -53,7 +54,13 @@ public class Robot extends TimedRobot
     {
       DriverStation.silenceJoystickConnectionWarning(true);
     }
+
+
+    DataLogManager.start();
+    DriverStation.startDataLog(DataLogManager.getLog());
   }
+
+
 
   /**
    * This function is called every 20 ms, no matter the mode. Use this for items like diagnostics that you want ran
