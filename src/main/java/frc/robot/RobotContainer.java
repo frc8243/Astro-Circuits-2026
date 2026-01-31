@@ -16,9 +16,12 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -51,6 +54,7 @@ public class RobotContainer {
   private SwerveInputStream driveRobotOriented;
   private SwerveInputStream driveAngularVelocityKeyboard;
   private SwerveInputStream driveDirectAngleKeyboard;
+  private static SendableChooser<Command> autoChooser;
 
   private static final Pose2d AUTO_START_POSE = new Pose2d(2, 7, Rotation2d.fromDegrees(0));
 
@@ -121,6 +125,7 @@ public class RobotContainer {
    */
 
   public RobotContainer() {
+    setupAuton();
     // the serial number to the alphabot is 031823E8
     // the serial number to the 2025 is 034159F4
     // 031823e8
@@ -237,6 +242,20 @@ public class RobotContainer {
 
     driverXbox.povRight()
         .onTrue(drivebase.driveToPose(STRAIGHT_POSE));
+
+  }
+
+  private void setupAuton() {
+    autoChooser = new SendableChooser<>();
+    Command driveStraight = Commands.sequence(
+        Commands.runOnce(
+            () -> drivebase.resetOdometry(AUTO_START_POSE)),
+        drivebase.driveToPose(STRAIGHT_POSE))
+
+    ;
+    autoChooser.addOption("drivestraight", driveStraight);
+    autoChooser.setDefaultOption("donothing", Commands.none());
+    SmartDashboard.putData("Autos/Selector", autoChooser);
 
   }
 
