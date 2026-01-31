@@ -56,11 +56,12 @@ public class RobotContainer {
   private SwerveInputStream driveDirectAngleKeyboard;
   private static SendableChooser<Command> autoChooser;
 
-  private static final Pose2d AUTO_START_POSE = new Pose2d(2, 7, Rotation2d.fromDegrees(0));
+  private static final Pose2d AUTO_START_POSE = new Pose2d(4, 1, Rotation2d.fromDegrees(0));
 
-  private static final Pose2d STRAIGHT_POSE = new Pose2d(7, 5, Rotation2d.fromDegrees(0));
+  private static final Pose2d STRAIGHT_POSE = new Pose2d(6.45, .66, Rotation2d.fromDegrees(0));
+private static final Pose2d NEUTRAL_ZONE_POSE2D = new Pose2d(7.7, 2.75, Rotation2d.fromDegrees(0));
 
-  private ArmSubsystem arm = new ArmSubsystem();
+  //private ArmSubsystem arm = new ArmSubsystem();
 
   void createSwerveInputStreams() {
     /**
@@ -125,7 +126,7 @@ public class RobotContainer {
    */
 
   public RobotContainer() {
-    setupAuton();
+   
     // the serial number to the alphabot is 031823E8
     // the serial number to the 2025 is 034159F4
     // 031823e8
@@ -141,6 +142,11 @@ public class RobotContainer {
     } else if (serialNum.equals("031823e8"))
       drivebase = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
           "swerve/alphabot"));
+
+        else{
+                drivebase = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
+          "swerve/2025"));
+        }
     createSwerveInputStreams();
     // Configure the trigger bindings
     configureBindings();
@@ -150,7 +156,10 @@ public class RobotContainer {
     // m_shooter.setDefaultCommand(m_shooter.setDutyCycle(0));
     // m_intake.setDefaultCommand(m_intake.stop());
     // fuelSubsystem.setDefaultCommand(fuelSubsystem.stop());
+  
+   setupAuton();
   }
+
 
   /**
    * Use this method to define your trigger->command mappings. Triggers can be
@@ -181,7 +190,7 @@ public class RobotContainer {
     } else {
       drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
     }
-    arm.setDefaultCommand(arm.armCmd(0));
+  //  arm.setDefaultCommand(arm.armCmd(0));
 
     if (Robot.isSimulation()) {
       Pose2d target = new Pose2d(new Translation2d(1, 4),
@@ -201,8 +210,8 @@ public class RobotContainer {
       driverXbox.button(1).whileTrue(drivebase.sysIdDriveMotorCommand());
       driverXbox.button(2).whileTrue(Commands.runEnd(() -> driveDirectAngleKeyboard.driveToPoseEnabled(true),
           () -> driveDirectAngleKeyboard.driveToPoseEnabled(false)));
-      driverXbox.povDown().whileTrue(arm.setAngle(Degrees.of(0)));
-      driverXbox.povUp().whileTrue(arm.setAngle(Degrees.of(90)));
+      //driverXbox.povDown().whileTrue(arm.setAngle(Degrees.of(0)));
+      //driverXbox.povUp().whileTrue(arm.setAngle(Degrees.of(90)));
 
       // driverXbox.b().whileTrue(
       // drivebase.driveToPose(
@@ -250,10 +259,16 @@ public class RobotContainer {
     Command driveStraight = Commands.sequence(
         Commands.runOnce(
             () -> drivebase.resetOdometry(AUTO_START_POSE)),
-        drivebase.driveToPose(STRAIGHT_POSE))
+        drivebase.driveToPose(STRAIGHT_POSE));
 
-    ;
+    Command collectBalls = Commands.sequence(
+        Commands.runOnce(
+            () -> drivebase.resetOdometry(AUTO_START_POSE)),
+        drivebase.driveToPose(STRAIGHT_POSE),
+        drivebase.driveToPose(NEUTRAL_ZONE_POSE2D));
+    
     autoChooser.addOption("drivestraight", driveStraight);
+    autoChooser.addOption("collectBalls", collectBalls);
     autoChooser.setDefaultOption("donothing", Commands.none());
     SmartDashboard.putData("Autos/Selector", autoChooser);
 
@@ -265,8 +280,7 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    // An example command will be run in autonomous
-    return drivebase.getAutonomousCommand("New Auto");
+return autoChooser.getSelected();
   }
 
   public void setMotorBrake(boolean brake) {
