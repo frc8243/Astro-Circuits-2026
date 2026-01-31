@@ -25,8 +25,12 @@ import frc.robot.commands.LaunchSequence;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
+
+import static edu.wpi.first.units.Units.Degrees;
+
 import java.io.File;
 import swervelib.SwerveInputStream;
+import frc.robot.subsystems.ArmSubsystem;
 
 /**
  * This class is where the bulk of the robot should be declared. Since
@@ -52,12 +56,11 @@ public class RobotContainer {
   private SwerveInputStream driveAngularVelocityKeyboard;
   private SwerveInputStream driveDirectAngleKeyboard;
 
-private static final Pose2d AUTO_START_POSE =
-new Pose2d(2,7,Rotation2d.fromDegrees(0));
+  private static final Pose2d AUTO_START_POSE = new Pose2d(2, 7, Rotation2d.fromDegrees(0));
 
-private static final Pose2d STRAIGHT_POSE =
-new Pose2d(7,5,Rotation2d.fromDegrees(0));
+  private static final Pose2d STRAIGHT_POSE = new Pose2d(7, 5, Rotation2d.fromDegrees(0));
 
+  private ArmSubsystem arm = new ArmSubsystem();
 
   void createSwerveInputStreams() {
     /**
@@ -177,6 +180,7 @@ new Pose2d(7,5,Rotation2d.fromDegrees(0));
     } else {
       drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
     }
+    arm.setDefaultCommand(arm.armCmd(0));
 
     if (Robot.isSimulation()) {
       Pose2d target = new Pose2d(new Translation2d(1, 4),
@@ -196,6 +200,8 @@ new Pose2d(7,5,Rotation2d.fromDegrees(0));
       driverXbox.button(1).whileTrue(drivebase.sysIdDriveMotorCommand());
       driverXbox.button(2).whileTrue(Commands.runEnd(() -> driveDirectAngleKeyboard.driveToPoseEnabled(true),
           () -> driveDirectAngleKeyboard.driveToPoseEnabled(false)));
+      driverXbox.povDown().whileTrue(arm.setAngle(Degrees.of(0)));
+      driverXbox.povUp().whileTrue(arm.setAngle(Degrees.of(90)));
 
       // driverXbox.b().whileTrue(
       // drivebase.driveToPose(
@@ -229,14 +235,13 @@ new Pose2d(7,5,Rotation2d.fromDegrees(0));
     // driverXbox.a().whileTrue(new Eject(fuelSubsystem));
     // fuelSubsystem.setDefaultCommand(fuelSubsystem.run(()->fuelSubsystem.stop()));
 
-    
-      driverXbox.povUp()
-      .onTrue(Commands.runOnce(
-      ()->drivebase.resetOdometry(AUTO_START_POSE)));
+    driverXbox.povUp()
+        .onTrue(Commands.runOnce(
+            () -> drivebase.resetOdometry(AUTO_START_POSE)));
 
-      driverXbox.povRight()
-      .onTrue(drivebase.driveToPose(STRAIGHT_POSE));
-     
+    driverXbox.povRight()
+        .onTrue(drivebase.driveToPose(STRAIGHT_POSE));
+
   }
 
   /**
