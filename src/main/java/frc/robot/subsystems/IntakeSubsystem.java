@@ -4,8 +4,8 @@ package frc.robot.subsystems;
 import static edu.wpi.first.units.Units.Amps;
 
 import com.revrobotics.sim.SparkMaxSim;
-import com.revrobotics.spark.SparkBase.PersistMode;
-import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.PersistMode;
+import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
@@ -43,7 +43,7 @@ public class IntakeSubsystem extends SubsystemBase
     SparkMaxConfig config = new SparkMaxConfig();
     config
         .inverted(false)
-        .smartCurrentLimit(100);
+        .smartCurrentLimit(40);
     config.idleMode(IdleMode.kCoast);
     m_rollerMotor.configure(config, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
     // TODO: Set the default command, if any, for this subsystem by calling setDefaultCommand(command) done
@@ -103,8 +103,8 @@ public class IntakeSubsystem extends SubsystemBase
   public boolean outtaking()
   {
     if(getCurrentCommand() != null)
-        return getDutycycle() > 0.0 || getCurrentCommand().getName().equals("Outtake");
-    return getDutycycle() > 0.0;
+        return getDutycycle() < 0.0 || getCurrentCommand().getName().equals("Outtake");
+    return getDutycycle() < 0.0;
   }
 
   public double getDutycycle()
