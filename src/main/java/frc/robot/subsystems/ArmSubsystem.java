@@ -14,6 +14,7 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 
 import edu.wpi.first.math.controller.ArmFeedforward;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -21,6 +22,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import yams.gearing.GearBox;
 import yams.gearing.MechanismGearing;
 import yams.mechanisms.config.ArmConfig;
+import yams.mechanisms.config.MechanismPositionConfig;
 import yams.mechanisms.positional.Arm;
 import yams.motorcontrollers.SmartMotorController;
 import yams.motorcontrollers.SmartMotorControllerConfig;
@@ -43,13 +45,21 @@ public class ArmSubsystem extends SubsystemBase {
       .withMotorInverted(false)
       .withClosedLoopRampRate(Seconds.of(0.25))
       .withFeedforward(new ArmFeedforward(0, 0, 0, 0))
+    
       .withControlMode(ControlMode.CLOSED_LOOP);
   private final SmartMotorController motor = new SparkWrapper(armMotor, DCMotor.getNEO(1), motorConfig);
+   
+  private final MechanismPositionConfig robotToMechanism = new MechanismPositionConfig()
+      .withMaxRobotHeight(Meters.of(0.5)) //22in tall
+      .withMaxRobotLength(Meters.of(0.68)) //27 x 27 in chassis
+      .withRelativePosition(new Translation3d(Meters.of(0.25), Meters.of(0), Meters.of(0))); // need to clean this up! 
+  
   private ArmConfig m_config = new ArmConfig(motor)
       .withLength(Meters.of(0.5))
       .withHardLimit(Degrees.of(-100), Degrees.of(200))
       .withTelemetry("ArmExample", TelemetryVerbosity.HIGH)
-      .withMass(Pounds.of(1))
+      .withMass(Pounds.of(1)) 
+      .withMechanismPositionConfig(robotToMechanism)
       .withStartingPosition(Degrees.of(0));
 
   private final Arm arm = new Arm(m_config);
