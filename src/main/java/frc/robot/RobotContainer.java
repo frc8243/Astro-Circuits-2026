@@ -28,6 +28,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.subsystems.ArmSubsystem;
+import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 import swervelib.SwerveInputStream;
 
@@ -44,7 +45,7 @@ public class RobotContainer {
   // Replace with CommandPS4Controller or CommandJoystick if needed
   final CommandXboxController driverXbox = new CommandXboxController(0);
   // The robot's subsystems and commands are defined here...
-  // private ShooterSubsystem m_shooter = new ShooterSubsystem();
+   //private ShooterSubsystem m_shooter = new ShooterSubsystem();
   // private IntakeSubsystem m_intake = new IntakeSubsystem();
 
   private SwerveSubsystem drivebase;
@@ -61,7 +62,7 @@ public class RobotContainer {
   private static final Pose2d STRAIGHT_POSE = new Pose2d(6.45, .66, Rotation2d.fromDegrees(0));
 private static final Pose2d NEUTRAL_ZONE_POSE2D = new Pose2d(7.7, 2.75, Rotation2d.fromDegrees(0));
 
-  //private ArmSubsystem arm = new ArmSubsystem();
+ // private ArmSubsystem arm = new ArmSubsystem();
 
   void createSwerveInputStreams() {
     /**
@@ -156,7 +157,7 @@ private static final Pose2d NEUTRAL_ZONE_POSE2D = new Pose2d(7.7, 2.75, Rotation
     // m_shooter.setDefaultCommand(m_shooter.setDutyCycle(0));
     // m_intake.setDefaultCommand(m_intake.stop());
     // fuelSubsystem.setDefaultCommand(fuelSubsystem.stop());
-  
+  //arm.setDefaultCommand(arm.armCmd(0));
    setupAuton();
   }
 
@@ -210,8 +211,8 @@ private static final Pose2d NEUTRAL_ZONE_POSE2D = new Pose2d(7.7, 2.75, Rotation
       driverXbox.button(1).whileTrue(drivebase.sysIdDriveMotorCommand());
       driverXbox.button(2).whileTrue(Commands.runEnd(() -> driveDirectAngleKeyboard.driveToPoseEnabled(true),
           () -> driveDirectAngleKeyboard.driveToPoseEnabled(false)));
-      //driverXbox.povDown().whileTrue(arm.setAngle(Degrees.of(0)));
-      //driverXbox.povUp().whileTrue(arm.setAngle(Degrees.of(90)));
+      // driverXbox.povDown().whileTrue(arm.setAngle(Degrees.of(0)));
+      // driverXbox.povUp().whileTrue(arm.setAngle(Degrees.of(90)));
 
       // driverXbox.b().whileTrue(
       // drivebase.driveToPose(

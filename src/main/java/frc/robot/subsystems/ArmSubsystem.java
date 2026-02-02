@@ -46,7 +46,7 @@ public class ArmSubsystem extends SubsystemBase {
       .withControlMode(ControlMode.CLOSED_LOOP);
   private final SmartMotorController motor = new SparkWrapper(armMotor, DCMotor.getNEO(1), motorConfig);
   private ArmConfig m_config = new ArmConfig(motor)
-      .withLength(Meters.of(0.135))
+      .withLength(Meters.of(0.5))
       .withHardLimit(Degrees.of(-100), Degrees.of(200))
       .withTelemetry("ArmExample", TelemetryVerbosity.HIGH)
       .withMass(Pounds.of(1))
