@@ -60,7 +60,7 @@ public class RobotContainer {
   private static final Pose2d AUTO_START_POSE = new Pose2d(4, 1, Rotation2d.fromDegrees(0));
 
   private static final Pose2d STRAIGHT_POSE = new Pose2d(6.45, .66, Rotation2d.fromDegrees(0));
-private static final Pose2d NEUTRAL_ZONE_POSE2D = new Pose2d(7.7, 2.75, Rotation2d.fromDegrees(0));
+private static final Pose2d NEUTRAL_ZONE_POSE2D = new Pose2d(7.7, 2.75, Rotation2d.fromDegrees(90));
 
   //private ArmSubsystem arm = new ArmSubsystem();
 
@@ -72,7 +72,7 @@ private static final Pose2d NEUTRAL_ZONE_POSE2D = new Pose2d(7.7, 2.75, Rotation
     driveAngularVelocity = SwerveInputStream.of(drivebase.getSwerveDrive(),
         () -> driverXbox.getLeftY() * -1,
         () -> driverXbox.getLeftX() * -1)
-        .withControllerRotationAxis(driverXbox::getRightX)
+        .withControllerRotationAxis(()->-driverXbox.getRightX())
         .deadband(OperatorConstants.DEADBAND)
         .scaleTranslation(0.8)
         .allianceRelativeControl(true);
@@ -265,8 +265,12 @@ private static final Pose2d NEUTRAL_ZONE_POSE2D = new Pose2d(7.7, 2.75, Rotation
     Command collectBalls = Commands.sequence(
         Commands.runOnce(
             () -> drivebase.resetOdometry(AUTO_START_POSE)),
-        drivebase.driveToPose(STRAIGHT_POSE),
-        drivebase.driveToPose(NEUTRAL_ZONE_POSE2D));
+       //drivebase.driveToPose(STRAIGHT_POSE),
+        drivebase.driveToPose(NEUTRAL_ZONE_POSE2D),
+        //drivebase.driveToPose(STRAIGHT_POSE), 
+         drivebase.driveToPose(AUTO_START_POSE)
+        );
+
     
     autoChooser.addOption("drivestraight", driveStraight);
     autoChooser.addOption("collectBalls", collectBalls);
