@@ -57,10 +57,7 @@ public class RobotContainer {
   private SwerveInputStream driveDirectAngleKeyboard;
   private static SendableChooser<Command> autoChooser;
 
-  private static final Pose2d AUTO_START_POSE = new Pose2d(4, 1, Rotation2d.fromDegrees(0));
 
-  private static final Pose2d STRAIGHT_POSE = new Pose2d(6.45, .66, Rotation2d.fromDegrees(0));
-private static final Pose2d NEUTRAL_ZONE_POSE2D = new Pose2d(7.7, 2.75, Rotation2d.fromDegrees(90));
 
   //private ArmSubsystem arm = new ArmSubsystem();
 
@@ -158,6 +155,7 @@ private static final Pose2d NEUTRAL_ZONE_POSE2D = new Pose2d(7.7, 2.75, Rotation
     // m_intake.setDefaultCommand(m_intake.stop());
     // fuelSubsystem.setDefaultCommand(fuelSubsystem.stop());
   //arm.setDefaultCommand(arm.armCmd(0));
+
    setupAuton();
   }
 
@@ -246,14 +244,33 @@ private static final Pose2d NEUTRAL_ZONE_POSE2D = new Pose2d(7.7, 2.75, Rotation
     // driverXbox.a().whileTrue(new Eject(fuelSubsystem));
     // fuelSubsystem.setDefaultCommand(fuelSubsystem.run(()->fuelSubsystem.stop()));
 
-    driverXbox.povUp()
-        .onTrue(Commands.runOnce(
-            () -> drivebase.resetOdometry(AUTO_START_POSE)));
+    // driverXbox.povUp()
+    //     .onTrue(Commands.runOnce(
+    //         () -> drivebase.resetOdometry(AUTO_START_POSE)));
 
-    driverXbox.povRight()
-        .onTrue(drivebase.driveToPose(STRAIGHT_POSE));
+    // driverXbox.povRight()
+    //     .onTrue(drivebase.driveToPose(STRAIGHT_POSE));
 
   }
+  private static final Pose2d RIGHT_AUTO_START_POSE = new Pose2d(4, 0.5, Rotation2d.fromDegrees(180));
+
+  private static final Pose2d STRAIGHT_POSE = new Pose2d(7.45,0.45 , Rotation2d.fromDegrees(0));
+private static final Pose2d NEUTRAL_ZONE_POSE2D = new Pose2d(7.7, 5, Rotation2d.fromDegrees(90));
+
+
+  private static final Pose2d LEFT_AUTO_START_POSE = new Pose2d(4, 7, Rotation2d.fromDegrees(0));
+
+  private static final Pose2d FRONT_POSE = new Pose2d(6.5, 7, Rotation2d.fromDegrees(0));
+private static final Pose2d MIDDLE_ZONE_POSE2D = new Pose2d(7.7, 5, Rotation2d.fromDegrees(90));
+
+private static final Pose2d AUTO_START_POSE = new Pose2d(4, 1, Rotation2d.fromDegrees(0));
+
+
+  private static final Pose2d MIDDLE_AUTO_START_POSE = new Pose2d(4, 4, Rotation2d.fromDegrees(0));
+private static final Pose2d MIDDLE_SHOOT_POSE = new Pose2d(3, 4, Rotation2d.fromDegrees(0));
+  private static final Pose2d DEPOT_POSE = new Pose2d(1.2, 5, Rotation2d.fromDegrees(180));
+  private static final Pose2d DEPOT_COLLECT_POSE = new Pose2d(0.5, 7, Rotation2d.fromDegrees(180));
+private static final Pose2d OUTPOST_ZONE_POSE2D = new Pose2d(0.5, 0.716, Rotation2d.fromDegrees(180));
 
   private void setupAuton() {
     autoChooser = new SendableChooser<>();
@@ -264,16 +281,37 @@ private static final Pose2d NEUTRAL_ZONE_POSE2D = new Pose2d(7.7, 2.75, Rotation
 
     Command collectBalls = Commands.sequence(
         Commands.runOnce(
-            () -> drivebase.resetOdometry(AUTO_START_POSE)),
-       //drivebase.driveToPose(STRAIGHT_POSE),
+            () -> drivebase.resetOdometry(RIGHT_AUTO_START_POSE)),
+       drivebase.driveToPose(STRAIGHT_POSE),
         drivebase.driveToPose(NEUTRAL_ZONE_POSE2D),
         //drivebase.driveToPose(STRAIGHT_POSE), 
-         drivebase.driveToPose(AUTO_START_POSE)
+         drivebase.driveToPose(RIGHT_AUTO_START_POSE)
+        );
+
+            Command collectBalls2 = Commands.sequence(
+        Commands.runOnce(
+            () -> drivebase.resetOdometry(LEFT_AUTO_START_POSE)),
+       //drivebase.driveToPose(STRAIGHT_POSE),
+        drivebase.driveToPose(FRONT_POSE),
+        //drivebase.driveToPose(STRAIGHT_POSE), 
+         drivebase.driveToPose(MIDDLE_ZONE_POSE2D)
+        );
+
+        Command collectBalls3 = Commands.sequence(
+        Commands.runOnce(
+            () -> drivebase.resetOdometry(MIDDLE_AUTO_START_POSE)),
+       drivebase.driveToPose(DEPOT_POSE),
+       drivebase.driveToPose(DEPOT_COLLECT_POSE),
+        drivebase.driveToPose(MIDDLE_SHOOT_POSE),
+        drivebase.driveToPose(OUTPOST_ZONE_POSE2D), 
+         drivebase.driveToPose(MIDDLE_AUTO_START_POSE)
         );
 
     
     autoChooser.addOption("drivestraight", driveStraight);
     autoChooser.addOption("collectBalls", collectBalls);
+     autoChooser.addOption("collectBalls2", collectBalls2);
+     autoChooser.addOption("collectBalls3", collectBalls3);
     autoChooser.setDefaultOption("donothing", Commands.none());
     SmartDashboard.putData("Autos/Selector", autoChooser);
 
