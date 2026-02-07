@@ -33,12 +33,12 @@ import yams.motorcontrollers.local.SparkWrapper;
 
 public class ArmSubsystem extends SubsystemBase {
 
-  private final SparkMax armMotor = new SparkMax(2, MotorType.kBrushless);
+  private final SparkMax armMotor = new SparkMax(4, MotorType.kBrushless);
 
   private final SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
-      .withClosedLoopController(4, 0, 0, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(90))
-      .withSoftLimit(Degrees.of(-30), Degrees.of(100))
-      .withGearing(new MechanismGearing(GearBox.fromReductionStages(3, 4)))
+      .withClosedLoopController(4, 0, 0, DegreesPerSecond.of(45), DegreesPerSecondPerSecond.of(45))
+      .withSoftLimit(Degrees.of(40), Degrees.of(110))
+      .withGearing(new MechanismGearing(GearBox.fromReductionStages(5, 5, 2)))
       .withIdleMode(MotorMode.BRAKE)
       .withTelemetry("ArmMotor", TelemetryVerbosity.HIGH)
       .withStatorCurrentLimit(Amps.of(40))
@@ -55,12 +55,12 @@ public class ArmSubsystem extends SubsystemBase {
       .withRelativePosition(new Translation3d(Meters.of(0.25), Meters.of(0), Meters.of(0))); // need to clean this up! 
   
   private ArmConfig m_config = new ArmConfig(motor)
-      .withLength(Meters.of(0.5))
-      .withHardLimit(Degrees.of(-100), Degrees.of(200))
+      .withLength(Meters.of(0.307))
+      .withHardLimit(Degrees.of(30), Degrees.of(120))
       .withTelemetry("ArmExample", TelemetryVerbosity.HIGH)
-      .withMass(Pounds.of(1)) 
+      .withMass(Pounds.of(2)) 
       .withMechanismPositionConfig(robotToMechanism)
-      .withStartingPosition(Degrees.of(0));
+      .withStartingPosition(Degrees.of(100));
 
   private final Arm arm = new Arm(m_config);
 

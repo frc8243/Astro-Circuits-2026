@@ -4,21 +4,22 @@ import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.RPM;
-import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Second;
-import static edu.wpi.first.units.Units.Seconds;
-import static edu.wpi.first.units.Units.Volts;
 
-import java.util.function.Supplier;
-
-import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.configs.VoltageConfigs;
+import com.ctre.phoenix6.hardware.TalonFX;
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
 
+import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import java.util.function.Supplier;
 import yams.gearing.GearBox;
 import yams.gearing.MechanismGearing;
 import yams.mechanisms.config.FlyWheelConfig;
@@ -30,62 +31,86 @@ import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.local.SparkWrapper;
 
+
 public class ShooterSubsystem extends SubsystemBase
 {
-  // TODO: Add detailed comments explaining the example, similar to the ExponentiallyProfiledArmSubsystem
 
-  private final SparkMax  shooterMotor    = new SparkMax(2, MotorType.kBrushless);
-  //  private final SmartMotorControllerTelemetryConfig motorTelemetryConfig = new SmartMotorControllerTelemetryConfig()
-//          .withMechanismPosition()
-//          .withRotorPosition()
-//          .withMechanismLowerLimit()
-//          .withMechanismUpperLimit();
-  private final SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
-      .withClosedLoopController(0.01, 0, 0, RPM.of(9000), RotationsPerSecondPerSecond.of(6000))
-      .withGearing(new MechanismGearing(GearBox.fromReductionStages(1, 1)))
-//      .withExternalEncoder(armMotor.getAbsoluteEncoder())
+  private final SparkMax                    flywheelMotor1         = new SparkMax(2, MotorType.kBrushless);
+  private final SparkMax                    flywheelMotor2         = new SparkMax(61, MotorType.kBrushless);
+  private final boolean                    flywheelMotor2Inverted = true;
+  private final SmartMotorControllerConfig motorConfig            = new SmartMotorControllerConfig(this)
+      .withClosedLoopController(1, 0, 0, RPM.of(30000), RPM.per(Second).of(100000))
+      .withGearing(new MechanismGearing(GearBox.fromReductionStages(3, 4)))
       .withIdleMode(MotorMode.COAST)
       .withTelemetry("ShooterMotor", TelemetryVerbosity.HIGH)
-//      .withSpecificTelemetry("ArmMotor", motorTelemetryConfig)
       .withStatorCurrentLimit(Amps.of(40))
-//      .withVoltageCompensation(Volts.of(12))
       .withMotorInverted(false)
-      .withClosedLoopRampRate(Seconds.of(0.1))
-      .withOpenLoopRampRate(Seconds.of(0.1))
-      .withFeedforward(new SimpleMotorFeedforward(0.27937, 0.089836, 0.014557))
-      .withSimFeedforward(new SimpleMotorFeedforward(0.27937, 0.089836, 0.014557))
+      .withFeedforward(new SimpleMotorFeedforward(0, 0, 0))
+      //.withVendorConfig(new TalonFXConfiguration().withVoltage(new VoltageConfigs().withPeakReverseVoltage(0)))
+      .withFollowers(Pair.of(flywheelMotor2, flywheelMotor2Inverted))
       .withControlMode(ControlMode.CLOSED_LOOP);
-  private final SmartMotorController       motor       = new SparkWrapper(shooterMotor, DCMotor.getNEO(1), motorConfig);
-
-  private final FlyWheelConfig shooterConfig = new FlyWheelConfig(motor)
+  private final SmartMotorController       motor                  = new SparkWrapper(flywheelMotor1,
+                                                                                       DCMotor.getNEO(2),
+                                                                                       motorConfig);
+  private final FlyWheelConfig             shooterConfig          = new FlyWheelConfig(motor)
+      // Diameter of the flywheel.
       .withDiameter(Inches.of(4))
-      .withMass(Pounds.of(1))
-      .withTelemetry("ShooterMech", TelemetryVerbosity.HIGH)
-      .withSoftLimit(RPM.of(-11000), RPM.of(11000))
-      .withSpeedometerSimulation(RPM.of(750));
-  private final FlyWheel       shooter       = new FlyWheel(shooterConfig);
+      // Mass of the flywheel.
+      .withMass(Pounds.of(4))
+      .withTelemetry("ShooterMech", TelemetryVerbosity.HIGH);
+  private final FlyWheel                   shooter                = new FlyWheel(shooterConfig);
 
   public ShooterSubsystem() {}
 
+  /**
+   * Gets the current velocity of the shooter.
+   *
+   * @return FlyWheel velocity.
+   */
   public AngularVelocity getVelocity() {return shooter.getSpeed();}
 
+  /**
+   * Set the shooter velocity.
+   *
+   * @param speed Speed to set.
+   * @return {@link edu.wpi.first.wpilibj2.command.RunCommand}
+   */
   public Command setVelocity(AngularVelocity speed) {return shooter.setSpeed(speed);}
 
-  public Command setDutyCycle(double dutyCycle) {return shooter.set(dutyCycle);}
+  /**
+   * Set the dutycycle of the shooter.
+   *
+   * @param dutyCycle DutyCycle to set.
+   * @return {@link edu.wpi.first.wpilibj2.command.RunCommand}
+   */
+  public Command set(double dutyCycle) {return shooter.set(dutyCycle);}
 
-  public Command setVelocity(Supplier<AngularVelocity> speed) {return shooter.setSpeed(speed);}
 
   public Command setDutyCycle(Supplier<Double> dutyCycle) {return shooter.set(dutyCycle);}
 
-  public Command sysId() {return shooter.sysId(Volts.of(10), Volts.of(1).per(Second), Seconds.of(5));}
+  //public Command setVelocity(Supplier<AngularVelocity> speed) {return shooter.run(speed);}
 
   @Override
-  public void periodic() {
-      shooter.updateTelemetry();
+  public void simulationPeriodic()
+  {
+    shooter.simIterate();
   }
 
   @Override
-  public void simulationPeriodic() {
-      shooter.simIterate();
+  public void periodic()
+  {
+    shooter.updateTelemetry();
+  }
+
+  // public void setRPM(LinearVelocity newHorizontalSpeed)
+  // {
+  //   shooter.setMeasurementVelocitySetpoint(newHorizontalSpeed);
+  // }
+
+  public boolean readyToShoot(AngularVelocity tolerance)
+  {
+    if (motor.getMechanismSetpointVelocity().isEmpty())
+    {return false;}
+    return motor.getMechanismVelocity().isNear(motor.getMechanismSetpointVelocity().orElseThrow(), tolerance);
   }
 }
