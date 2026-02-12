@@ -30,6 +30,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.subsystems.ArmSubsystem;
+import frc.robot.subsystems.HopperSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 import swervelib.SwerveInputStream;
@@ -65,6 +66,7 @@ public class RobotContainer {
   // private ArmSubsystem arm = new ArmSubsystem();
 
   private ShooterSubsystem shooter = new ShooterSubsystem();
+    private HopperSubsystem hopper = new HopperSubsystem();
 
   void createSwerveInputStreams() {
     /**
@@ -231,6 +233,7 @@ public class RobotContainer {
     operatorXbox.back().whileTrue(Commands.none());
 
  operatorXbox.a().whileTrue(shooter.setVelocity(RPM.of(1000)));
+ operatorXbox.leftBumper().whileTrue(hopper.out(0.8));
     // operatorXbox.a()
     // .onTrue(shooter.setVelocity(RPM.of(3000)))
     // .onFalse(shooter.setVelocity(RPM.of(0)));

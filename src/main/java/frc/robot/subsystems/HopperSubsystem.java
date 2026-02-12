@@ -20,25 +20,25 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 
-public class IntakeSubsystem extends SubsystemBase
+public class HopperSubsystem extends SubsystemBase
 {
 
 
   public static final double kWristMomentOfInertia = 0.00032; // kg * m^2
 
-  private final SparkMax m_rollerMotor = new SparkMax(3, MotorType.kBrushless);
+  private final SparkMax m_rollerMotor = new SparkMax(2, MotorType.kBrushless);
 
   private final DCMotor m_rollerMotorGearbox = DCMotor.getNEO(1);
 
   private final FlywheelSim m_rollerSim = new FlywheelSim(LinearSystemId.createFlywheelSystem(
       m_rollerMotorGearbox,
       kWristMomentOfInertia,
-      1), m_rollerMotorGearbox, 1.0 / 4096.0);
+      1.0/4.0), m_rollerMotorGearbox, 1.0 / 4096.0);
 
   private final SparkMaxSim m_rollerMotorSim = new SparkMaxSim(m_rollerMotor, m_rollerMotorGearbox);
 
 
-  public IntakeSubsystem()
+  public HopperSubsystem()
   {
     SparkMaxConfig config = new SparkMaxConfig();
     config
