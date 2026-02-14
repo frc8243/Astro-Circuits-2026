@@ -26,7 +26,7 @@ public class IntakeSubsystem extends SubsystemBase
 
   public static final double kWristMomentOfInertia = 0.00032; // kg * m^2
 
-  private final SparkMax m_rollerMotor = new SparkMax(3, MotorType.kBrushless);
+  private final SparkMax m_rollerMotor = new SparkMax(5, MotorType.kBrushless);
 
   private final DCMotor m_rollerMotorGearbox = DCMotor.getNEO(1);
 
@@ -44,7 +44,7 @@ public class IntakeSubsystem extends SubsystemBase
     config
         .inverted(false)
         .smartCurrentLimit(40);
-    config.idleMode(IdleMode.kCoast);
+    config.idleMode(IdleMode.kBrake);
     m_rollerMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     // TODO: Set the default command, if any, for this subsystem by calling setDefaultCommand(command) done
     //       in the constructor or in the robot coordination class, such as RobotContainer.

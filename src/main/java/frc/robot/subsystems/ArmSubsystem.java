@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.Amps;
+import static edu.wpi.first.units.Units.Degree;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
@@ -33,17 +34,19 @@ import yams.motorcontrollers.local.SparkWrapper;
 
 public class ArmSubsystem extends SubsystemBase {
 
-  private final SparkMax armMotor = new SparkMax(4, MotorType.kBrushless);
+  private final SparkMax armMotor = new SparkMax(6, MotorType.kBrushless);
 
   private final SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
-      .withClosedLoopController(4, 0, 0, DegreesPerSecond.of(45), DegreesPerSecondPerSecond.of(45))
-      .withSoftLimit(Degrees.of(40), Degrees.of(110))
-      .withGearing(new MechanismGearing(GearBox.fromReductionStages(5, 5, 2)))
-      .withIdleMode(MotorMode.BRAKE)
+      .withClosedLoopController(25, 0, 0, DegreesPerSecond.of(360), DegreesPerSecondPerSecond.of(360))
+      .withSoftLimit(Degrees.of(0), Degrees.of(120))
+      .withGearing(new MechanismGearing(GearBox.fromReductionStages(5, 5, 60.0/18.0))) //original numbers were 5,5,2
+      .withIdleMode(MotorMode.COAST) //BrAKE?
       .withTelemetry("ArmMotor", TelemetryVerbosity.HIGH)
       .withStatorCurrentLimit(Amps.of(40))
       .withMotorInverted(false)
-      .withClosedLoopRampRate(Seconds.of(0.25))
+      .withClosedLoopRampRate(Seconds.of(0.1))
+            .withOpenLoopRampRate(Seconds.of(0.1))
+
       .withFeedforward(new ArmFeedforward(0, 0, 0, 0))
     
       .withControlMode(ControlMode.CLOSED_LOOP);
@@ -56,11 +59,12 @@ public class ArmSubsystem extends SubsystemBase {
   
   private ArmConfig m_config = new ArmConfig(motor)
       .withLength(Meters.of(0.307))
-      .withHardLimit(Degrees.of(30), Degrees.of(120))
+      .withSoftLimits(Degrees.of(0), Degree.of(120))
+      .withHardLimit(Degrees.of(0), Degrees.of(120))
       .withTelemetry("ArmExample", TelemetryVerbosity.HIGH)
       .withMass(Pounds.of(2)) 
       .withMechanismPositionConfig(robotToMechanism)
-      .withStartingPosition(Degrees.of(100));
+      .withStartingPosition(Degrees.of(0));
 
   private final Arm arm = new Arm(m_config);
 

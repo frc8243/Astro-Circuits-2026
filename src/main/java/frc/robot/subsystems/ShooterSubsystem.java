@@ -31,86 +31,123 @@ import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.local.SparkWrapper;
 
+//indexer green wheels CIM motor 
+//bottom shooter black  wheels NEO motor
+//top shooter orange wheels NEO motor
 
-public class ShooterSubsystem extends SubsystemBase
-{
+public class ShooterSubsystem extends SubsystemBase {
 
-  private final SparkMax                    flywheelMotor1         = new SparkMax(2, MotorType.kBrushless);
-  private final SparkMax                    flywheelMotor2         = new SparkMax(61, MotorType.kBrushless);
-  private final boolean                    flywheelMotor2Inverted = true;
-  private final SmartMotorControllerConfig motorConfig            = new SmartMotorControllerConfig(this)
-      .withClosedLoopController(1, 0, 0, RPM.of(30000), RPM.per(Second).of(100000))
+  private final SparkMax indexerMotor = new SparkMax(2, MotorType.kBrushed);
+  private final SparkMax topShooterMotor = new SparkMax(3, MotorType.kBrushless);
+  private final SparkMax bottomShooterMotor = new SparkMax(4, MotorType.kBrushless);
+
+ 
+  
+  private final SmartMotorControllerConfig shooterConfig = new SmartMotorControllerConfig(this)
+      .withClosedLoopController(1, 0, 0, RPM.of(5780), RPM.per(Second).of(5780))
       .withGearing(new MechanismGearing(GearBox.fromReductionStages(3, 4)))
       .withIdleMode(MotorMode.COAST)
-      .withTelemetry("ShooterMotor", TelemetryVerbosity.HIGH)
+      .withTelemetry("shooterMotor", TelemetryVerbosity.HIGH)
       .withStatorCurrentLimit(Amps.of(40))
       .withMotorInverted(false)
       .withFeedforward(new SimpleMotorFeedforward(0, 0, 0))
-      //.withVendorConfig(new TalonFXConfiguration().withVoltage(new VoltageConfigs().withPeakReverseVoltage(0)))
-      .withFollowers(Pair.of(flywheelMotor2, flywheelMotor2Inverted))
+      .withFollowers(Pair.of(bottomShooterMotor, true))
       .withControlMode(ControlMode.CLOSED_LOOP);
-  private final SmartMotorController       motor                  = new SparkWrapper(flywheelMotor1,
-                                                                                       DCMotor.getNEO(2),
-                                                                                       motorConfig);
-  private final FlyWheelConfig             shooterConfig          = new FlyWheelConfig(motor)
+  private final SmartMotorController shooterWrapper = new SparkWrapper(topShooterMotor,
+      DCMotor.getNEO(2),
+      shooterConfig);
+  private final FlyWheelConfig shooterFlyWheelConfig = new FlyWheelConfig(shooterWrapper)
       // Diameter of the flywheel.
       .withDiameter(Inches.of(4))
-      // Mass of the flywheel.
-      .withMass(Pounds.of(4))
-      .withTelemetry("ShooterMech", TelemetryVerbosity.HIGH);
-  private final FlyWheel                   shooter                = new FlyWheel(shooterConfig);
+      // Mass of the flywheel. 6 4 inch stealth wheels + 1.3 pound shaft. each wheel is 0.3 pounds
+      .withMass(Pounds.of(1.3 + 6 * 0.3))
+      .withTelemetry("shooterMech", TelemetryVerbosity.HIGH);
+  private final FlyWheel ShooterFlyWheel = new FlyWheel(shooterFlyWheelConfig);
 
-  public ShooterSubsystem() {}
+  // this is for green wheels
 
-  /**
-   * Gets the current velocity of the shooter.
-   *
-   * @return FlyWheel velocity.
-   */
-  public AngularVelocity getVelocity() {return shooter.getSpeed();}
+   private final SmartMotorControllerConfig indexerConfig = new SmartMotorControllerConfig(this)
+      .withClosedLoopController(1, 0, 0, RPM.of(5310), RPM.per(Second).of(5310))
+      .withGearing(new MechanismGearing(GearBox.fromReductionStages(3, 4)))
+      .withIdleMode(MotorMode.COAST)
+      .withTelemetry("indexerMotor", TelemetryVerbosity.HIGH)
+      .withStatorCurrentLimit(Amps.of(40))
+      .withMotorInverted(false)
+      .withFeedforward(new SimpleMotorFeedforward(0, 0, 0))
+      .withControlMode(ControlMode.CLOSED_LOOP);
+  private final SmartMotorController indexerWrapper = new SparkWrapper(indexerMotor,
+      DCMotor.getCIM(1),
+      indexerConfig);
+  private final FlyWheelConfig indexerFlyWheelConfig = new FlyWheelConfig(indexerWrapper)
+      // Diameter of the flywheel.
+      .withDiameter(Inches.of(3))
+      // Mass of the flywheel. 6 4 inch stealth wheels + 1.3 pound shaft. each wheel is 0.17 pounds
+      .withMass(Pounds.of(1.3 + 6 * 0.17))
+      .withTelemetry("indexerMech", TelemetryVerbosity.HIGH);
+  private final FlyWheel indexerFlyWheel = new FlyWheel(indexerFlyWheelConfig);
 
-  /**
-   * Set the shooter velocity.
-   *
-   * @param speed Speed to set.
-   * @return {@link edu.wpi.first.wpilibj2.command.RunCommand}
-   */
-  public Command setVelocity(AngularVelocity speed) {return shooter.setSpeed(speed);}
-
-  /**
-   * Set the dutycycle of the shooter.
-   *
-   * @param dutyCycle DutyCycle to set.
-   * @return {@link edu.wpi.first.wpilibj2.command.RunCommand}
-   */
-  public Command set(double dutyCycle) {return shooter.set(dutyCycle);}
+  
 
 
-  public Command setDutyCycle(Supplier<Double> dutyCycle) {return shooter.set(dutyCycle);}
 
-  //public Command setVelocity(Supplier<AngularVelocity> speed) {return shooter.run(speed);}
-
-  @Override
-  public void simulationPeriodic()
-  {
-    shooter.simIterate();
+  public ShooterSubsystem() {
   }
 
-  @Override
-  public void periodic()
-  {
-    shooter.updateTelemetry();
-  }
-
-  // public void setRPM(LinearVelocity newHorizontalSpeed)
-  // {
-  //   shooter.setMeasurementVelocitySetpoint(newHorizontalSpeed);
+  // /**
+  //  * Gets the current velocity of the shooter.
+  //  *
+  //  * @return FlyWheel velocity.
+  //  */
+  // public AngularVelocity getVelocity() {
+  //   return shooter.getSpeed();
   // }
 
-  public boolean readyToShoot(AngularVelocity tolerance)
-  {
-    if (motor.getMechanismSetpointVelocity().isEmpty())
-    {return false;}
-    return motor.getMechanismVelocity().isNear(motor.getMechanismSetpointVelocity().orElseThrow(), tolerance);
-  }
+  // /**
+  //  * Set the shooter velocity.
+  //  *
+  //  * @param speed Speed to set.
+  //  * @return {@link edu.wpi.first.wpilibj2.command.RunCommand}
+  //  */
+  // public Command setVelocity(AngularVelocity speed) {
+  //   return shooter.setSpeed(speed);
+  // }
+
+  // /**
+  //  * Set the dutycycle of the shooter.
+  //  *
+  //  * @param dutyCycle DutyCycle to set.
+  //  * @return {@link edu.wpi.first.wpilibj2.command.RunCommand}
+  //  */
+  // public Command set(double dutyCycle) {
+  //   return shooter.set(dutyCycle);
+  // }
+
+  // public Command setDutyCycle(Supplier<Double> dutyCycle) {
+  //   return shooter.set(dutyCycle);
+  // }
+
+  // // public Command setVelocity(Supplier<AngularVelocity> speed) {return
+  // // shooter.run(speed);}
+
+  // @Override
+  // public void simulationPeriodic() {
+  //   shooter.simIterate();
+  // }
+
+  // @Override
+  // public void periodic() {
+  //   shooter.updateTelemetry();
+  // }
+
+  // // public void setRPM(LinearVelocity newHorizontalSpeed)
+  // // {
+  // // shooter.setMeasurementVelocitySetpoint(newHorizontalSpeed);
+  // // }
+
+  // public boolean readyToShoot(AngularVelocity tolerance) {
+  //   if (topShooterWrapper.getMechanismSetpointVelocity().isEmpty()) {
+  //     return false;
+  //   }
+  //   return topShooterWrapper.getMechanismVelocity().isNear(topShooterWrapper.getMechanismSetpointVelocity().orElseThrow(), tolerance);
+  // }
 }
