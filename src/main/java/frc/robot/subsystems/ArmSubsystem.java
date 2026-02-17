@@ -38,16 +38,16 @@ public class ArmSubsystem extends SubsystemBase {
 
   private final SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
       .withClosedLoopController(25, 0, 0, DegreesPerSecond.of(360), DegreesPerSecondPerSecond.of(360))
-      .withSoftLimit(Degrees.of(0), Degrees.of(120))
-      .withGearing(new MechanismGearing(GearBox.fromReductionStages(5, 5, 60.0/18.0))) //original numbers were 5,5,2
-      .withIdleMode(MotorMode.COAST) //BrAKE?
+      // .withSoftLimit(Degrees.of(0), Degrees.of(120))
+      .withGearing(new MechanismGearing(GearBox.fromReductionStages(1, 5, 60.0/18.0))) //original numbers were 5,5,2
+      .withIdleMode(MotorMode.BRAKE) //BrAKE?
       .withTelemetry("ArmMotor", TelemetryVerbosity.HIGH)
       .withStatorCurrentLimit(Amps.of(40))
       .withMotorInverted(false)
       .withClosedLoopRampRate(Seconds.of(0.1))
             .withOpenLoopRampRate(Seconds.of(0.1))
 
-      .withFeedforward(new ArmFeedforward(0, 0, 0, 0))
+      .withFeedforward(new ArmFeedforward(0, 0.5, 1.63, 0.01))
     
       .withControlMode(ControlMode.CLOSED_LOOP);
   private final SmartMotorController motor = new SparkWrapper(armMotor, DCMotor.getNEO(1), motorConfig);

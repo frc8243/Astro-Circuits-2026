@@ -29,6 +29,8 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
+import frc.robot.subsystems.AlgaeSubsystem;
+import frc.robot.subsystems.AlgaeSubsystem.WristAngle;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.HopperSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
@@ -51,9 +53,9 @@ public class RobotContainer {
     final CommandXboxController operatorXbox = new CommandXboxController(1);
     // The robot's subsystems and commands are defined here...
     // private ShooterSubsystem m_shooter = new ShooterSubsystem();
-     private IntakeSubsystem intake = new IntakeSubsystem();
-     private ArmSubsystem arm = new ArmSubsystem();
-
+    private IntakeSubsystem intake = new IntakeSubsystem();
+    // private ArmSubsystem arm = new ArmSubsystem();
+    private AlgaeSubsystem algea = new AlgaeSubsystem();
     private SwerveSubsystem drivebase;
     private String serialNum = System.getenv("serialnum");
     private SwerveInputStream driveAngularVelocity;
@@ -65,8 +67,8 @@ public class RobotContainer {
 
     // private ArmSubsystem arm = new ArmSubsystem();
 
-    //private ShooterSubsystem shooter = new ShooterSubsystem();
-   // private HopperSubsystem hopper = new HopperSubsystem();
+    // private ShooterSubsystem shooter = new ShooterSubsystem();
+    // private HopperSubsystem hopper = new HopperSubsystem();
 
     void createSwerveInputStreams() {
         /**
@@ -227,16 +229,20 @@ public class RobotContainer {
         }
 
         driverXbox.a().onTrue((Commands.runOnce(drivebase::zeroGyro)));
-        operatorXbox.povUp().onTrue(arm.setAngle(Degrees.of(90)));
-          operatorXbox.povDown().onTrue(arm.setAngle(Degrees.of(30)));
+        // operatorXbox.povUp().onTrue(arm.setAngle(Degrees.of(-50)));
+        // operatorXbox.povDown().onTrue(arm.setAngle(Degrees.of(-30)));
+        operatorXbox.povLeft()
+                .whileTrue(algea.goToWristAngleCommand(WristAngle.A1));
+                operatorXbox.povRight()
+                .whileTrue(algea.goToWristAngleCommand(WristAngle.NONE));
         driverXbox.x().onTrue(Commands.runOnce(drivebase::addFakeVisionReading));
         // driverXbox.start().whileTrue(Commands.none());
         operatorXbox.back().whileTrue(Commands.none());
 
-       // operatorXbox.a().whileTrue(shooter.setVelocity(RPM.of(1000)));
-       // operatorXbox.leftBumper().whileTrue(hopper.out(0.8));
-        //intake.setDefaultCommand(intake.in(0)); 
-         operatorXbox.b().whileTrue(intake.in(-0.4)).whileFalse(intake.in(0.0));
+        // operatorXbox.a().whileTrue(shooter.setVelocity(RPM.of(1000)));
+        // operatorXbox.leftBumper().whileTrue(hopper.out(0.8));
+        // intake.setDefaultCommand(intake.in(0));
+        operatorXbox.b().whileTrue(intake.in(-0.7)).whileFalse(intake.in(0.0));
         // operatorXbox.a()
         // .onTrue(shooter.setVelocity(RPM.of(3000)))
         // .onFalse(shooter.setVelocity(RPM.of(0)));
