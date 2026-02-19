@@ -18,13 +18,13 @@ import edu.wpi.first.wpilibj.simulation.RoboRioSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-public class HopperSubsystem extends SubsystemBase {
+public class IndexerSubsystem extends SubsystemBase {
 
   public static final double kWristMomentOfInertia = 0.00032; // kg * m^2
 
-  private final SparkMax m_rollerMotor = new SparkMax(7, MotorType.kBrushless);
+  private final SparkMax m_rollerMotor = new SparkMax(2, MotorType.kBrushed);
 
-  private final DCMotor m_rollerMotorGearbox = DCMotor.getNEO(1);
+  private final DCMotor m_rollerMotorGearbox = DCMotor.getCIM(1);
 
   private final FlywheelSim m_rollerSim = new FlywheelSim(LinearSystemId.createFlywheelSystem(
       m_rollerMotorGearbox,
@@ -33,12 +33,12 @@ public class HopperSubsystem extends SubsystemBase {
 
   private final SparkMaxSim m_rollerMotorSim = new SparkMaxSim(m_rollerMotor, m_rollerMotorGearbox);
 
-  public HopperSubsystem() {
+  public IndexerSubsystem() {
     SparkMaxConfig config = new SparkMaxConfig();
     config
         .inverted(false)
         .smartCurrentLimit(40);
-    config.idleMode(IdleMode.kBrake);
+    config.idleMode(IdleMode.kCoast);
     m_rollerMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     // TODO: Set the default command, if any, for this subsystem by calling
     // setDefaultCommand(command) done
@@ -69,22 +69,22 @@ public class HopperSubsystem extends SubsystemBase {
 
   }
 
-  public Command setHopperSpeed(double speed) {
+  public Command setIndexerSpeed(double speed) {
     return runOnce(() -> {
       m_rollerMotor.set(speed);
     });
   }
 
   public Command out(double speed) {
-    return setHopperSpeed(speed * -1);
+    return setIndexerSpeed(speed * -1);
   }
 
   public Command in(double speed) {
-    return setHopperSpeed(speed);
+    return setIndexerSpeed(speed);
   }
 
   public Command stop() {
-    return setHopperSpeed(0);
+    return setIndexerSpeed(0);
   }
 
   public Current getCurrent() {

@@ -1,153 +1,148 @@
 package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.Amps;
-import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.Pounds;
-import static edu.wpi.first.units.Units.RPM;
-import static edu.wpi.first.units.Units.Second;
 
-import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.configs.VoltageConfigs;
-import com.ctre.phoenix6.hardware.TalonFX;
-import com.revrobotics.spark.SparkMax;
+import com.revrobotics.sim.SparkMaxSim;
+import com.revrobotics.PersistMode;
+import com.revrobotics.RelativeEncoder;
+import com.revrobotics.ResetMode;
+import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.ResetMode;
+import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkBase.ControlType;
+import com.revrobotics.spark.config.ClosedLoopConfig;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import com.revrobotics.spark.config.SparkMaxConfig;
 
-import edu.wpi.first.math.Pair;
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.LinearVelocity;
+import edu.wpi.first.math.system.plant.LinearSystemId;
+import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.wpilibj.simulation.FlywheelSim;
+import edu.wpi.first.wpilibj.simulation.RoboRioSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import java.util.function.Supplier;
-import yams.gearing.GearBox;
-import yams.gearing.MechanismGearing;
-import yams.mechanisms.config.FlyWheelConfig;
-import yams.mechanisms.velocity.FlyWheel;
-import yams.motorcontrollers.SmartMotorController;
-import yams.motorcontrollers.SmartMotorControllerConfig;
-import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
-import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
-import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
-import yams.motorcontrollers.local.SparkWrapper;
-
-//indexer green wheels CIM motor 
-//bottom shooter black  wheels NEO motor
-//top shooter orange wheels NEO motor
 
 public class ShooterSubsystem extends SubsystemBase {
+  private RelativeEncoder shooterRightEncoder;
+  private SparkClosedLoopController shooterRightPIDController;
+  public static final double kWristMomentOfInertia = 0.00032; // kg * m^2
+  private final ClosedLoopConfig closedLoopConfigShooterRight = new ClosedLoopConfig();
+  private final SparkMax m_leftRollerMotor = new SparkMax(3, MotorType.kBrushless);
+  private final SparkMax m_rightRollerMotor = new SparkMax(4, MotorType.kBrushless);
 
-  private final SparkMax indexerMotor = new SparkMax(2, MotorType.kBrushed);
-  private final SparkMax topShooterMotor = new SparkMax(3, MotorType.kBrushless);
-  private final SparkMax bottomShooterMotor = new SparkMax(4, MotorType.kBrushless);
+  private final DCMotor m_rollerMotorGearbox = DCMotor.getNEO(2);
 
- 
-  
-  private final SmartMotorControllerConfig shooterConfig = new SmartMotorControllerConfig(this)
-      .withClosedLoopController(1, 0, 0, RPM.of(5780), RPM.per(Second).of(5780))
-      .withGearing(new MechanismGearing(GearBox.fromReductionStages(3, 4)))
-      .withIdleMode(MotorMode.COAST)
-      .withTelemetry("shooterMotor", TelemetryVerbosity.HIGH)
-      .withStatorCurrentLimit(Amps.of(40))
-      .withMotorInverted(false)
-      .withFeedforward(new SimpleMotorFeedforward(0, 0, 0))
-      .withFollowers(Pair.of(bottomShooterMotor, true))
-      .withControlMode(ControlMode.CLOSED_LOOP);
-  private final SmartMotorController shooterWrapper = new SparkWrapper(topShooterMotor,
-      DCMotor.getNEO(2),
-      shooterConfig);
-  private final FlyWheelConfig shooterFlyWheelConfig = new FlyWheelConfig(shooterWrapper)
-      // Diameter of the flywheel.
-      .withDiameter(Inches.of(4))
-      // Mass of the flywheel. 6 4 inch stealth wheels + 1.3 pound shaft. each wheel is 0.3 pounds
-      .withMass(Pounds.of(1.3 + 6 * 0.3))
-      .withTelemetry("shooterMech", TelemetryVerbosity.HIGH);
-  private final FlyWheel ShooterFlyWheel = new FlyWheel(shooterFlyWheelConfig);
+  private final FlywheelSim m_rollerSim = new FlywheelSim(LinearSystemId.createFlywheelSystem(
+      m_rollerMotorGearbox,
+      kWristMomentOfInertia,
+      1.0 / 4.0), m_rollerMotorGearbox, 1.0 / 4096.0);
 
-  // this is for green wheels
-
-   private final SmartMotorControllerConfig indexerConfig = new SmartMotorControllerConfig(this)
-      .withClosedLoopController(1, 0, 0, RPM.of(5310), RPM.per(Second).of(5310))
-      .withGearing(new MechanismGearing(GearBox.fromReductionStages(3, 4)))
-      .withIdleMode(MotorMode.COAST)
-      .withTelemetry("indexerMotor", TelemetryVerbosity.HIGH)
-      .withStatorCurrentLimit(Amps.of(40))
-      .withMotorInverted(false)
-      .withFeedforward(new SimpleMotorFeedforward(0, 0, 0))
-      .withControlMode(ControlMode.CLOSED_LOOP);
-  private final SmartMotorController indexerWrapper = new SparkWrapper(indexerMotor,
-      DCMotor.getCIM(1),
-      indexerConfig);
-  private final FlyWheelConfig indexerFlyWheelConfig = new FlyWheelConfig(indexerWrapper)
-      // Diameter of the flywheel.
-      .withDiameter(Inches.of(3))
-      // Mass of the flywheel. 6 4 inch stealth wheels + 1.3 pound shaft. each wheel is 0.17 pounds
-      .withMass(Pounds.of(1.3 + 6 * 0.17))
-      .withTelemetry("indexerMech", TelemetryVerbosity.HIGH);
-  private final FlyWheel indexerFlyWheel = new FlyWheel(indexerFlyWheelConfig);
-
-  
-
-
+  // private final SparkMaxSim m_rollerMotorSim = new SparkMaxSim(m_rollerMotor,
+  // m_rollerMotorGearbox);
+  // private final SparkMaxSim m_rollerMotorSim = new SparkMaxSim(m_rollerMotor,
+  // m_rollerMotorGearbox);
 
   public ShooterSubsystem() {
+    SparkMaxConfig rightConfig = new SparkMaxConfig();
+    rightConfig
+        .inverted(false)
+        .smartCurrentLimit(40);
+    // rightConfig.idleMode(IdleMode.kCoast);
+    // rightConfig.encoder.positionConversionFactor(1.0/(3.0*4.0));
+    // rightConfig.encoder.velocityConversionFactor(1.0/(3.0*4.0)/60.0);
+    // rightConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder);
+    // rightConfig.closedLoop.pid(.1,0,0);
+    // rightConfig.closedLoop.outputRange(-1.0,1.0);
+    // closedLoopConfigShooterRight.feedForward.sva(0,12/5760.0,0);
+    // shooterRightMotorConfig.apply(closedLoopConfigShooterRight);
+    // shooterRightPIDController = m_rightRollerMotor.getClosedLoopController();
+    // shooterRightEncoder = m_rightRollerMotor.getEncoder();
+
+    m_rightRollerMotor.configure(rightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
+    SparkMaxConfig leftConfig = new SparkMaxConfig();
+    leftConfig.follow(m_rightRollerMotor, true);
+
+    m_leftRollerMotor.configure(leftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
+    // TODO: Set the default command, if any, for this subsystem by calling
+    // setDefaultCommand(command) done
+    // in the constructor or in the robot coordination class, such as
+    // RobotContainer.
+    // Also, you can call addChild(name, sendableChild) to associate sendables with
+    // the subsystem
+
+    // such as SpeedControllers, Encoders, DigitalInputs, etc.
   }
 
-  // /**
-  //  * Gets the current velocity of the shooter.
-  //  *
-  //  * @return FlyWheel velocity.
-  //  */
-  // public AngularVelocity getVelocity() {
-  //   return shooter.getSpeed();
-  // }
+  @Override
+  public void simulationPeriodic() {
+    // In this method, we update our simulation of what our arm is doing
+    // First, we set our "inputs" (voltages)
+    // m_rollerSim.setInput(m_rollerMotorSim.getAppliedOutput() *
+    // RoboRioSim.getVInVoltage());
 
-  // /**
-  //  * Set the shooter velocity.
-  //  *
-  //  * @param speed Speed to set.
-  //  * @return {@link edu.wpi.first.wpilibj2.command.RunCommand}
-  //  */
-  // public Command setVelocity(AngularVelocity speed) {
-  //   return shooter.setSpeed(speed);
-  // }
+    // Next, we update it. The standard loop time is 20ms.
+    // m_rollerSim.update(0.02);
 
-  // /**
-  //  * Set the dutycycle of the shooter.
-  //  *
-  //  * @param dutyCycle DutyCycle to set.
-  //  * @return {@link edu.wpi.first.wpilibj2.command.RunCommand}
-  //  */
-  // public Command set(double dutyCycle) {
-  //   return shooter.set(dutyCycle);
-  // }
+    // Finally, we set our simulated encoder's readings and simulated battery
+    // voltage
+    // m_encoderSim.setDistance(m_coralArmSim.getAngleRads());
 
-  // public Command setDutyCycle(Supplier<Double> dutyCycle) {
-  //   return shooter.set(dutyCycle);
-  // }
+    // m_rollerMotorSim.iterate(m_rollerSim.getAngularVelocityRPM(),
+    // RoboRioSim.getVInVoltage(),
+    // Simulated battery voltage, in Volts
+    // 0.02);
 
-  // // public Command setVelocity(Supplier<AngularVelocity> speed) {return
-  // // shooter.run(speed);}
+  }
 
-  // @Override
-  // public void simulationPeriodic() {
-  //   shooter.simIterate();
-  // }
+  public void runShooter() {
+    shooterRightPIDController.setSetpoint(1000, ControlType.kVelocity);
+  }
 
-  // @Override
-  // public void periodic() {
-  //   shooter.updateTelemetry();
-  // }
+  public void defaultBehavior() {
+    shooterRightPIDController.setSetpoint(0, ControlType.kVelocity);
+  }
 
-  // // public void setRPM(LinearVelocity newHorizontalSpeed)
-  // // {
-  // // shooter.setMeasurementVelocitySetpoint(newHorizontalSpeed);
-  // // }
+  public Command defaultBehaviorCommand() {
+    return this.run(() -> defaultBehavior()).withName("shooterDefaultBehavior");
+  }
 
-  // public boolean readyToShoot(AngularVelocity tolerance) {
-  //   if (topShooterWrapper.getMechanismSetpointVelocity().isEmpty()) {
-  //     return false;
-  //   }
-  //   return topShooterWrapper.getMechanismVelocity().isNear(topShooterWrapper.getMechanismSetpointVelocity().orElseThrow(), tolerance);
-  // }
+  public Command runShooterCommand() {
+    return this.run(() -> runShooter()).withName("setVelocity");
+  }
+
+  public Command setShooterSpeed(double speed) {
+    return runOnce(() -> {
+      m_leftRollerMotor.set(speed);
+    });
+  }
+
+  public Command out(double speed) {
+    return setShooterSpeed(speed * -1);
+  }
+
+  public Command in(double speed) {
+    return setShooterSpeed(speed);
+  }
+
+  public Command stop() {
+    return setShooterSpeed(0);
+  }
+
+  public Current getCurrent() {
+    return Amps.of(m_leftRollerMotor.getOutputCurrent());
+  }
+
+  public boolean outtaking() {
+    if (getCurrentCommand() != null)
+      return getDutycycle() < 0.0 || getCurrentCommand().getName().equals("Outtake");
+    return getDutycycle() < 0.0;
+  }
+
+  public double getDutycycle() {
+    return m_leftRollerMotor.getAppliedOutput();
+  }
 }

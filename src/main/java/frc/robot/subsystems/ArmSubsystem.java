@@ -1,93 +1,96 @@
 package frc.robot.subsystems;
 
-import static edu.wpi.first.units.Units.Amps;
-import static edu.wpi.first.units.Units.Degree;
-import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.DegreesPerSecond;
-import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
-import static edu.wpi.first.units.Units.Meters;
-import static edu.wpi.first.units.Units.Pounds;
-import static edu.wpi.first.units.Units.Second;
-import static edu.wpi.first.units.Units.Seconds;
-import static edu.wpi.first.units.Units.Volts;
-
+import com.revrobotics.RelativeEncoder;
+import com.revrobotics.spark.ClosedLoopSlot;
+import com.revrobotics.spark.SparkBase.PersistMode;
+import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 
+import com.revrobotics.spark.config.SparkBaseConfig;
+import com.revrobotics.spark.config.SparkMaxConfig;
+
 import edu.wpi.first.math.controller.ArmFeedforward;
-import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import yams.gearing.GearBox;
-import yams.gearing.MechanismGearing;
-import yams.mechanisms.config.ArmConfig;
-import yams.mechanisms.config.MechanismPositionConfig;
-import yams.mechanisms.positional.Arm;
-import yams.motorcontrollers.SmartMotorController;
-import yams.motorcontrollers.SmartMotorControllerConfig;
-import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
-import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
-import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
-import yams.motorcontrollers.local.SparkWrapper;
 
 public class ArmSubsystem extends SubsystemBase {
 
-  private final SparkMax armMotor = new SparkMax(6, MotorType.kBrushless);
+  private final SparkMax algaeWristMotor = new SparkMax(6, MotorType.kBrushless);
+  private final SparkClosedLoopController wristPidController = algaeWristMotor.getClosedLoopController();
+  private final double kWristKS = 0;
+  private final double kWristKG = 0.07;
+  private final double kWristKV = 1.63;
+  private final ArmFeedforward mWristFeedForward = new ArmFeedforward(
+      kWristKS,
+      kWristKG,
+      kWristKV);
+  private final SparkMaxConfig sparkMaxConfigWrist = new SparkMaxConfig();
+  private final double wristEncoderPositionFactor = 1 / 83.0 * 2 * Math.PI;
+  private final double wristP = 0.2 / (Math.PI / 2);
+  private final double wristI = 0;
+  private final double wristD = 0;
+  private final RelativeEncoder wristEncoder = algaeWristMotor.getEncoder();
 
-  private final SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
-      .withClosedLoopController(25, 0, 0, DegreesPerSecond.of(360), DegreesPerSecondPerSecond.of(360))
-      // .withSoftLimit(Degrees.of(0), Degrees.of(120))
-      .withGearing(new MechanismGearing(GearBox.fromReductionStages(1, 5, 60.0/18.0))) //original numbers were 5,5,2
-      .withIdleMode(MotorMode.BRAKE) //BrAKE?
-      .withTelemetry("ArmMotor", TelemetryVerbosity.HIGH)
-      .withStatorCurrentLimit(Amps.of(40))
-      .withMotorInverted(false)
-      .withClosedLoopRampRate(Seconds.of(0.1))
-            .withOpenLoopRampRate(Seconds.of(0.1))
-
-      .withFeedforward(new ArmFeedforward(0, 0.5, 1.63, 0.01))
-    
-      .withControlMode(ControlMode.CLOSED_LOOP);
-  private final SmartMotorController motor = new SparkWrapper(armMotor, DCMotor.getNEO(1), motorConfig);
-   
-  private final MechanismPositionConfig robotToMechanism = new MechanismPositionConfig()
-      .withMaxRobotHeight(Meters.of(0.5)) //22in tall
-      .withMaxRobotLength(Meters.of(0.68)) //27 x 27 in chassis
-      .withRelativePosition(new Translation3d(Meters.of(0.25), Meters.of(0), Meters.of(0))); // need to clean this up! 
-  
-  private ArmConfig m_config = new ArmConfig(motor)
-      .withLength(Meters.of(0.307))
-      .withSoftLimits(Degrees.of(0), Degree.of(120))
-      .withHardLimit(Degrees.of(0), Degrees.of(120))
-      .withTelemetry("ArmExample", TelemetryVerbosity.HIGH)
-      .withMass(Pounds.of(2)) 
-      .withMechanismPositionConfig(robotToMechanism)
-      .withStartingPosition(Degrees.of(0));
-
-  private final Arm arm = new Arm(m_config);
+  /** Creates a new AlgaeWrist. */
+  private static final SparkMaxConfig.IdleMode wristIdleMode = SparkBaseConfig.IdleMode.kBrake;
 
   public ArmSubsystem() {
+    sparkMaxConfigWrist.inverted(false).idleMode(wristIdleMode).smartCurrentLimit(40);
+    sparkMaxConfigWrist.encoder.positionConversionFactor(wristEncoderPositionFactor)
+        .velocityConversionFactor(wristEncoderPositionFactor / 60);
+    sparkMaxConfigWrist.closedLoop.feedbackSensor(com.revrobotics.spark.FeedbackSensor.kPrimaryEncoder)
+        .pid(wristP, wristI, wristD, ClosedLoopSlot.kSlot1).outputRange(-.2, .2);
+
+    algaeWristMotor.configure(sparkMaxConfigWrist, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
   }
 
+  public enum WristAngle {
+    NONE(Units.degreesToRadians(-20)),
+    STOW(Units.degreesToRadians(-10)),
+    A1(Units.degreesToRadians(70)),
+    A2(Units.degreesToRadians(50));
+
+    private final double m_angle;
+
+    WristAngle(double angle) {
+      m_angle = angle;
+    }
+
+    public double getAngle() {
+      return m_angle;
+    }
+  }
+
+  private WristAngle angleEnum = WristAngle.NONE;
+
+  @Override
   public void periodic() {
-    arm.updateTelemetry();
+    SmartDashboard.putNumber("AlgaeWrist/Encoder Position", wristEncoder.getPosition());
+    SmartDashboard.putNumber("Algae/Angle", angleEnum.getAngle());
+    SmartDashboard.putString("Algae/State", "" + angleEnum);
   }
 
-  public void simulationPeriodic() {
-    arm.simIterate();
+  private void goToWristAngle(double angle) {
+    double ffCalc = mWristFeedForward.calculate((angle), 0.0);
+    wristPidController.setReference(angle,
+        SparkMax.ControlType.kPosition,
+        ClosedLoopSlot.kSlot1, ffCalc);
   }
 
-  public Command armCmd(double dutycycle) {
-    return arm.set(dutycycle);
+  public Command goToWristAngleCommand(WristAngle angleEnum) {
+    return this.run(
+        () -> {
+          goToWristAngle(angleEnum.getAngle());
+          this.angleEnum = angleEnum;
+          System.out.println("Move Wrist to " + angleEnum.toString());
+        });
   }
 
-  public Command sysId() {
-    return arm.sysId(Volts.of(3), Volts.of(3).per(Second), Second.of(30));
-  }
-
-  public Command setAngle(Angle angle) {
-    return arm.setAngle(angle);
+  public void stop() {
+    algaeWristMotor.set(0.0);
   }
 }
