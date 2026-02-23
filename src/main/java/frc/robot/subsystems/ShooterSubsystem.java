@@ -17,6 +17,7 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -48,7 +49,7 @@ public class ShooterSubsystem extends SubsystemBase {
         rightConfig.inverted(false).smartCurrentLimit(40);
         rightConfig.idleMode(IdleMode.kCoast);
         rightConfig.encoder.positionConversionFactor(1.0 / (1.5));
-        rightConfig.encoder.velocityConversionFactor(1.0 / (1.5) / 60.0);
+        rightConfig.encoder.velocityConversionFactor(1.0 / (1.5));
         rightConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder);
         rightConfig.closedLoop.pid(.1, 0, 0);
         rightConfig.closedLoop.outputRange(-1.0, 1.0);
@@ -78,28 +79,22 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     @Override
-    public void simulationPeriodic() {
-        // In this method, we update our simulation of what our arm is doing
-        // First, we set our "inputs" (voltages)
-        // m_rollerSim.setInput(m_rollerMotorSim.getAppliedOutput() *
-        // RoboRioSim.getVInVoltage());
+    public void periodic() {
+        double currentRPM = shooterRightEncoder.getVelocity();
 
-        // Next, we update it. The standard loop time is 20ms.
-        // m_rollerSim.update(0.02);
-
-        // Finally, we set our simulated encoder's readings and simulated battery
-        // voltage
-        // m_encoderSim.setDistance(m_coralArmSim.getAngleRads());
-
-        // m_rollerMotorSim.iterate(m_rollerSim.getAngularVelocityRPM(),
-        // RoboRioSim.getVInVoltage(),
-        // Simulated battery voltage, in Volts
-        // 0.02);
-
+        SmartDashboard.putNumber("Shooter/CurrentRPM", currentRPM);
     }
 
-    public void runShooter() {
-        shooterRightPIDController.setSetpoint(1000, ControlType.kVelocity);
+    @Override
+    public void simulationPeriodic() {}
+
+    public boolean atSpeed(double targetRPM, double tolerance) {
+        return Math.abs(shooterRightEncoder.getVelocity() - targetRPM) < tolerance;
+    }
+
+    public void setVelocity(double speed) {
+
+        shooterRightPIDController.setSetpoint(speed, ControlType.kVelocity);
     }
 
     public void defaultBehavior() {
@@ -111,18 +106,15 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     public Command runShooterCommand() {
-        return this.run(() -> runShooter()).withName("setVelocity");
+        return this.run(() -> setVelocity(1000)).withName("setVelocity");
     }
 
-    // public Command setShooterSpeed(double speed) {
-    //     return runOnce(
-    //             () -> {
-    //                 System.out.println("Speed = " + speed);
-    //                 m_rightRollerMotor.set(speed);
-    //             });
-    // }
+    public Command spinToRPM(double rpm) {
+        return runEnd(() -> setVelocity(rpm), () -> setVelocity(0));
+    }
+
     public Command setShooterSpeed(double speed) {
-        return runEnd(
+        return startEnd(
                 () -> {
                     System.out.println("Speed = " + speed);
                     m_rightRollerMotor.set(speed);

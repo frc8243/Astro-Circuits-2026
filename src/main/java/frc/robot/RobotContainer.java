@@ -210,10 +210,24 @@ public class RobotContainer {
         operatorXbox.povLeft().whileTrue(algae.goToWristAngleCommand(WristAngle.A1));
         operatorXbox.povRight().whileTrue(algae.goToWristAngleCommand(WristAngle.NONE));
         operatorXbox.back().whileTrue(Commands.none());
-        // operatorXbox.a().whileTrue(shooter.out(-0.8)).whileFalse(shooter.in(0.0));
-        operatorXbox.a().whileTrue(indexer.out(0.8).alongWith(shooter.out(-0.8)));
-        operatorXbox.x().whileTrue(hopper.out(-0.8)).whileFalse(hopper.in(0.0));
-        operatorXbox.y().whileTrue(indexer.out(0.8)).whileFalse(indexer.in(0.0));
+        //        operatorXbox.a().whileTrue(shooter.out(-0.8)).whileFalse(shooter.in(0.0));
+        // operatorXbox
+        //         .a()
+        //         .whileTrue(
+        //                 Commands.startEnd(
+        //                         () -> shooter.setVelocity(1000.0),
+        //                         () -> shooter.setVelocity(0.0),
+        //                         shooter));
+
+        operatorXbox
+                .a()
+                .whileTrue(
+                        shooter.spinToRPM(3000) // spin up
+                                .until(() -> shooter.atSpeed(3000, 100))
+                                .andThen(indexer.out(0.8).alongWith(shooter.spinToRPM(3000))));
+        // operatorXbox.a().whileTrue(indexer.out(0.8).alongWith(shooter.setShooterSpeed(-0.8)));
+        operatorXbox.x().whileTrue(hopper.out(-0.4)).whileFalse(hopper.in(0.0));
+        // operatorXbox.y().whileTrue(indexer.out(0.8)).whileFalse(indexer.in(0.0));
 
         operatorXbox.b().whileTrue(intake.in(-1.0)).whileFalse(intake.in(0.0));
     }
