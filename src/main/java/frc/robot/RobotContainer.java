@@ -43,7 +43,7 @@ public class RobotContainer {
     final CommandXboxController operatorXbox = new CommandXboxController(1);
     // The robot's subsystems and commands are defined here...
     private IntakeSubsystem intake = new IntakeSubsystem();
-    private ArmSubsystem algae = new ArmSubsystem();
+    private ArmSubsystem arm = new ArmSubsystem();
     private SwerveSubsystem drivebase;
     private String serialNum = System.getenv("serialnum");
     private SwerveInputStream driveAngularVelocity;
@@ -156,24 +156,17 @@ public class RobotContainer {
      * joysticks}.
      */
     private void configureBindings() {
-        Command driveFieldOrientedDirectAngle = drivebase.driveFieldOriented(driveDirectAngle);
-        Command driveFieldOrientedAnglularVelocity =
+
+        Command driveFieldOrientedAngularVelocity =
                 drivebase.driveFieldOriented(driveAngularVelocity);
-        Command driveRobotOrientedAngularVelocity =
-                drivebase.driveFieldOriented(driveRobotOriented);
-        Command driveSetpointGen =
-                drivebase.driveWithSetpointGeneratorFieldRelative(driveDirectAngle);
+
         Command driveFieldOrientedDirectAngleKeyboard =
                 drivebase.driveFieldOriented(driveDirectAngleKeyboard);
-        Command driveFieldOrientedAnglularVelocityKeyboard =
-                drivebase.driveFieldOriented(driveAngularVelocityKeyboard);
-        Command driveSetpointGenKeyboard =
-                drivebase.driveWithSetpointGeneratorFieldRelative(driveDirectAngleKeyboard);
 
         if (RobotBase.isSimulation()) {
             drivebase.setDefaultCommand(driveFieldOrientedDirectAngleKeyboard);
         } else {
-            drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
+            drivebase.setDefaultCommand(driveFieldOrientedAngularVelocity);
         }
 
         if (Robot.isSimulation()) {
@@ -207,8 +200,8 @@ public class RobotContainer {
         driverXbox.a().onTrue((Commands.runOnce(drivebase::zeroGyro)));
         driverXbox.x().onTrue(Commands.runOnce(drivebase::addFakeVisionReading));
 
-        operatorXbox.povLeft().whileTrue(algae.goToWristAngleCommand(WristAngle.A1));
-        operatorXbox.povRight().whileTrue(algae.goToWristAngleCommand(WristAngle.NONE));
+        operatorXbox.povLeft().whileTrue(arm.goToWristAngleCommand(WristAngle.DEPLOY));
+        operatorXbox.povRight().whileTrue(arm.goToWristAngleCommand(WristAngle.STOW));
         operatorXbox.back().whileTrue(Commands.none());
         //        operatorXbox.a().whileTrue(shooter.out(-0.8)).whileFalse(shooter.in(0.0));
         // operatorXbox
@@ -267,38 +260,55 @@ public class RobotContainer {
                         Commands.runOnce(() -> drivebase.resetOdometry(AUTO_START_POSE)),
                         drivebase.driveToPose(STRAIGHT_POSE));
 
-        Command collectBalls =
+        Command outpostNeutralZone =
                 Commands.sequence(
                         Commands.runOnce(() -> drivebase.resetOdometry(RIGHT_AUTO_START_POSE)),
                         drivebase.driveToPose(STRAIGHT_POSE),
+                        arm.goToWristAngleCommand(WristAngle.DEPLOY),
+                        intake.in(-1),
                         drivebase.driveToPose(NEUTRAL_ZONE_POSE2D),
                         drivebase.driveToPose(RIGHT_AUTO_RETURN_POSE),
-                        // drivebase.driveToPose(RIGHT_SHOOT_POSE_),
-                        drivebase.driveToPose(MIDDLE_SHOOT_POSE));
+                        drivebase.driveToPose(MIDDLE_SHOOT_POSE),
+                        intake.in(0.0),
+                        shooter.spinToRPM(3000),
+                        Commands.waitUntil(() -> shooter.atSpeed(3000, 100)),
+                        indexer.out(0.8));
 
-        Command collectBalls2 =
+        Command depotNeutralZone =
                 Commands.sequence(
                         Commands.runOnce(() -> drivebase.resetOdometry(LEFT_AUTO_START_POSE)),
                         // drivebase.driveToPose(STRAIGHT_POSE),
                         drivebase.driveToPose(FRONT_POSE),
+                        arm.goToWristAngleCommand(WristAngle.DEPLOY),
+                        intake.in(-1),
                         // drivebase.driveToPose(STRAIGHT_POSE),
                         drivebase.driveToPose(MIDDLE_ZONE_POSE2D),
                         drivebase.driveToPose(LEFT_AUTO_RETURN_POSE),
-                        drivebase.driveToPose(MIDDLE_SHOOT_POSE));
+                        drivebase.driveToPose(MIDDLE_SHOOT_POSE),
+                        intake.in(0.0),
+                        shooter.spinToRPM(3000),
+                        Commands.waitUntil(() -> shooter.atSpeed(3000, 100)),
+                        indexer.out(0.8));
 
-        Command collectBalls3 =
+        Command middleDepotOutpost =
                 Commands.sequence(
                         Commands.runOnce(() -> drivebase.resetOdometry(MIDDLE_AUTO_START_POSE)),
+                        arm.goToWristAngleCommand(WristAngle.DEPLOY),
+                        intake.in(-1),
                         drivebase.driveToPose(DEPOT_POSE),
                         drivebase.driveToPose(DEPOT_COLLECT_POSE),
                         // drivebase.driveToPose(MIDDLE_SHOOT_POSE),
                         drivebase.driveToPose(OUTPOST_ZONE_POSE2D),
-                        drivebase.driveToPose(MIDDLE_SHOOT_POSE));
+                        drivebase.driveToPose(MIDDLE_SHOOT_POSE),
+                        intake.in(0.0),
+                        shooter.spinToRPM(3000),
+                        Commands.waitUntil(() -> shooter.atSpeed(3000, 100)),
+                        indexer.out(0.8));
 
         autoChooser.addOption("drivestraight", driveStraight);
-        autoChooser.addOption("collectBalls", collectBalls);
-        autoChooser.addOption("collectBalls2", collectBalls2);
-        autoChooser.addOption("collectBalls3", collectBalls3);
+        autoChooser.addOption(" outpostNeutralZone", outpostNeutralZone);
+        autoChooser.addOption("depotNeutralZone", depotNeutralZone);
+        autoChooser.addOption("middleDepotOutpost", middleDepotOutpost);
         autoChooser.setDefaultOption("donothing", Commands.none());
         SmartDashboard.putData("Autos/Selector", autoChooser);
     }

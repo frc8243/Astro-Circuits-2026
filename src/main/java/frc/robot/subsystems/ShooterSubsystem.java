@@ -28,7 +28,7 @@ public class ShooterSubsystem extends SubsystemBase {
     private final ClosedLoopConfig closedLoopConfigShooterRight = new ClosedLoopConfig();
     private final SparkMax m_leftRollerMotor = new SparkMax(3, MotorType.kBrushless);
     private final SparkMax m_rightRollerMotor = new SparkMax(4, MotorType.kBrushless);
-
+    private double targetRPM = 0;
     private final DCMotor m_rollerMotorGearbox = DCMotor.getNEO(2);
 
     private final FlywheelSim m_rollerSim =
@@ -64,6 +64,7 @@ public class ShooterSubsystem extends SubsystemBase {
 
         SparkMaxConfig leftConfig = new SparkMaxConfig();
         leftConfig.follow(m_rightRollerMotor, true);
+        leftConfig.smartCurrentLimit(40);
 
         m_leftRollerMotor.configure(
                 leftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -83,6 +84,15 @@ public class ShooterSubsystem extends SubsystemBase {
         double currentRPM = shooterRightEncoder.getVelocity();
 
         SmartDashboard.putNumber("Shooter/CurrentRPM", currentRPM);
+        SmartDashboard.putNumber("Shooter/TargetRPM", targetRPM);
+        SmartDashboard.putNumber("Shooter/RightCurrent", m_rightRollerMotor.getOutputCurrent());
+        SmartDashboard.putNumber(
+                "Shooter/RightVoltage",
+                m_rightRollerMotor.getBusVoltage() * m_rightRollerMotor.getAppliedOutput());
+        SmartDashboard.putNumber("Shooter/LeftCurrent", m_leftRollerMotor.getOutputCurrent());
+        SmartDashboard.putNumber(
+                "Shooter/LeftVoltage",
+                m_leftRollerMotor.getBusVoltage() * m_leftRollerMotor.getAppliedOutput());
     }
 
     @Override
@@ -110,6 +120,7 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     public Command spinToRPM(double rpm) {
+        targetRPM = rpm;
         return runEnd(() -> setVelocity(rpm), () -> setVelocity(0));
     }
 
