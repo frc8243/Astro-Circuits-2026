@@ -28,6 +28,9 @@ import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 import java.io.File;
+
+import com.pathplanner.lib.util.FlippingUtil;
+
 import swervelib.SwerveInputStream;
 
 /**
@@ -226,18 +229,21 @@ public class RobotContainer {
     }
 
     private static final Pose2d RIGHT_AUTO_START_POSE =
-            new Pose2d(4, 0.5, Rotation2d.fromDegrees(0));
+            new Pose2d(4, 0.7, Rotation2d.fromDegrees(0));
     private static final Pose2d RIGHT_AUTO_RETURN_POSE =
-            new Pose2d(6, 0.634, Rotation2d.fromDegrees(0));
-    private static final Pose2d STRAIGHT_POSE = new Pose2d(7.45, 0.45, Rotation2d.fromDegrees(90));
+            new Pose2d(6, 0.7, Rotation2d.fromDegrees(0));
+    private static final Pose2d STRAIGHT_POSE = new Pose2d(7.45, 0.7, Rotation2d.fromDegrees(90));
     private static final Pose2d NEUTRAL_ZONE_POSE2D =
             new Pose2d(7.7, 4, Rotation2d.fromDegrees(90));
     private static final Pose2d RIGHT_SHOOT_POSE_ = new Pose2d(3, 0.5, Rotation2d.fromDegrees(0));
-
+    private static final Pose2d OUTPOST_TRENCH_SHOOT_POSE =
+            new Pose2d(3, .7, Rotation2d.fromDegrees(60));
+    private static final Pose2d DEPOT_TRENCH_SHOOT_POSE =
+            new Pose2d(3, 7.5, Rotation2d.fromDegrees(-60));
     private static final Pose2d LEFT_AUTO_START_POSE =
-            new Pose2d(4, 7, Rotation2d.fromDegrees(270));
+            new Pose2d(4, 7.5, Rotation2d.fromDegrees(270));
     private static final Pose2d LEFT_AUTO_RETURN_POSE =
-            new Pose2d(6, 7, Rotation2d.fromDegrees(270));
+            new Pose2d(6, 7.5, Rotation2d.fromDegrees(270));
 
     private static final Pose2d FRONT_POSE = new Pose2d(7.5, 7, Rotation2d.fromDegrees(270));
     private static final Pose2d MIDDLE_ZONE_POSE2D =
@@ -246,10 +252,11 @@ public class RobotContainer {
     private static final Pose2d AUTO_START_POSE = new Pose2d(4, 1, Rotation2d.fromDegrees(0));
 
     private static final Pose2d MIDDLE_AUTO_START_POSE =
-            new Pose2d(4, 4, Rotation2d.fromDegrees(0));
+            new Pose2d(3, 4, Rotation2d.fromDegrees(0));
     private static final Pose2d MIDDLE_SHOOT_POSE = new Pose2d(3, 4, Rotation2d.fromDegrees(0));
-    private static final Pose2d DEPOT_POSE = new Pose2d(0.5, 5.5, Rotation2d.fromDegrees(90));
-    private static final Pose2d DEPOT_COLLECT_POSE = new Pose2d(0.5, 7, Rotation2d.fromDegrees(90));
+    private static final Pose2d DEPOT_POSE = new Pose2d(0.5, 7.5, Rotation2d.fromDegrees(90));
+    private static final Pose2d DEPOT_COLLECT_POSE =
+            new Pose2d(0.5, 5.5, Rotation2d.fromDegrees(70));
     private static final Pose2d OUTPOST_ZONE_POSE2D =
             new Pose2d(0.5, 0.716, Rotation2d.fromDegrees(180));
 
@@ -260,53 +267,74 @@ public class RobotContainer {
                         Commands.runOnce(() -> drivebase.resetOdometry(AUTO_START_POSE)),
                         drivebase.driveToPose(STRAIGHT_POSE));
 
-        Command outpostNeutralZone =
+        Command outpostNeutralZoneBlue =
                 Commands.sequence(
                         Commands.runOnce(() -> drivebase.resetOdometry(RIGHT_AUTO_START_POSE)),
                         drivebase.driveToPose(STRAIGHT_POSE),
-                        arm.goToWristAngleCommand(WristAngle.DEPLOY),
-                        intake.in(-1),
+                        // arm.goToWristAngleCommand(WristAngle.DEPLOY),
+                        // intake.in(-1),
                         drivebase.driveToPose(NEUTRAL_ZONE_POSE2D),
                         drivebase.driveToPose(RIGHT_AUTO_RETURN_POSE),
-                        drivebase.driveToPose(MIDDLE_SHOOT_POSE),
-                        intake.in(0.0),
-                        shooter.spinToRPM(3000),
-                        Commands.waitUntil(() -> shooter.atSpeed(3000, 100)),
-                        indexer.out(0.8));
+                        drivebase.driveToPose(OUTPOST_TRENCH_SHOOT_POSE)
+                        // drivebase.driveToPose(MIDDLE_SHOOT_POSE)
+                        // intake.in(0.0),
+                        // shooter.spinToRPM(3000),
+                        // Commands.waitUntil(() -> shooter.atSpeed(3000, 100)),
+                        // indexer.out(0.8)
+                        );
+ Command outpostNeutralZoneRed =
+                Commands.sequence(
+                        Commands.runOnce(() -> drivebase.resetOdometry(FlippingUtil.flipFieldPose(RIGHT_AUTO_START_POSE))),
+                        drivebase.driveToPose(FlippingUtil.flipFieldPose(STRAIGHT_POSE)),
+                        // arm.goToWristAngleCommand(WristAngle.DEPLOY),
+                        // intake.in(-1),
+                        drivebase.driveToPose(FlippingUtil.flipFieldPose(NEUTRAL_ZONE_POSE2D)),
+                        drivebase.driveToPose(FlippingUtil.flipFieldPose(RIGHT_AUTO_RETURN_POSE)),
+                        drivebase.driveToPose(FlippingUtil.flipFieldPose(OUTPOST_TRENCH_SHOOT_POSE)),
+                        drivebase.driveToPose(FlippingUtil.flipFieldPose(MIDDLE_SHOOT_POSE))
+                        // intake.in(0.0),
+                        // shooter.spinToRPM(3000),
+                        // Commands.waitUntil(() -> shooter.atSpeed(3000, 100)),
+                        // indexer.out(0.8)
+                        );
 
         Command depotNeutralZone =
                 Commands.sequence(
                         Commands.runOnce(() -> drivebase.resetOdometry(LEFT_AUTO_START_POSE)),
                         // drivebase.driveToPose(STRAIGHT_POSE),
                         drivebase.driveToPose(FRONT_POSE),
-                        arm.goToWristAngleCommand(WristAngle.DEPLOY),
-                        intake.in(-1),
+                        // arm.goToWristAngleCommand(WristAngle.DEPLOY),
+                        // intake.in(-1),
                         // drivebase.driveToPose(STRAIGHT_POSE),
                         drivebase.driveToPose(MIDDLE_ZONE_POSE2D),
                         drivebase.driveToPose(LEFT_AUTO_RETURN_POSE),
-                        drivebase.driveToPose(MIDDLE_SHOOT_POSE),
-                        intake.in(0.0),
-                        shooter.spinToRPM(3000),
-                        Commands.waitUntil(() -> shooter.atSpeed(3000, 100)),
-                        indexer.out(0.8));
+                        drivebase.driveToPose(DEPOT_TRENCH_SHOOT_POSE)
+                        // intake.in(0.0),
+                        // shooter.spinToRPM(3000),
+                        // Commands.waitUntil(() -> shooter.atSpeed(3000, 100)),
+                        // indexer.out(0.8)
+                        );
 
         Command middleDepotOutpost =
                 Commands.sequence(
                         Commands.runOnce(() -> drivebase.resetOdometry(MIDDLE_AUTO_START_POSE)),
-                        arm.goToWristAngleCommand(WristAngle.DEPLOY),
-                        intake.in(-1),
+                        // arm.goToWristAngleCommand(WristAngle.DEPLOY),
+                        // intake.in(-1),
                         drivebase.driveToPose(DEPOT_POSE),
                         drivebase.driveToPose(DEPOT_COLLECT_POSE),
-                        // drivebase.driveToPose(MIDDLE_SHOOT_POSE),
-                        drivebase.driveToPose(OUTPOST_ZONE_POSE2D),
                         drivebase.driveToPose(MIDDLE_SHOOT_POSE),
-                        intake.in(0.0),
-                        shooter.spinToRPM(3000),
-                        Commands.waitUntil(() -> shooter.atSpeed(3000, 100)),
-                        indexer.out(0.8));
+                        drivebase.driveToPose(OUTPOST_ZONE_POSE2D),
+                        drivebase.driveToPose(MIDDLE_SHOOT_POSE)
+                        //     drivebase.driveToPose(OUTPOST_TRENCH_SHOOT_POSE)
+                        // intake.in(0.0),
+                        // shooter.spinToRPM(3000),
+                        // Commands.waitUntil(() -> shooter.atSpeed(3000, 100)),
+                        // indexer.out(0.8)
+                        );
 
         autoChooser.addOption("drivestraight", driveStraight);
-        autoChooser.addOption(" outpostNeutralZone", outpostNeutralZone);
+  autoChooser.addOption("outpostNeutralZoneRED", outpostNeutralZoneRed);
+        autoChooser.addOption("outpostNeutralZoneBLUE", outpostNeutralZoneBlue);
         autoChooser.addOption("depotNeutralZone", depotNeutralZone);
         autoChooser.addOption("middleDepotOutpost", middleDepotOutpost);
         autoChooser.setDefaultOption("donothing", Commands.none());
