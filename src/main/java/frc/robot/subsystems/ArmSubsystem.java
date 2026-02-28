@@ -106,4 +106,9 @@ public class ArmSubsystem extends SubsystemBase {
     public void stop() {
         armWristMotor.set(0.0);
     }
+
+    public void manualControl(double velocity) {
+        armWristMotor.set(velocity * 0.5);
+        SmartDashboard.putNumber("wrist/manualSpeed", velocity);
+    }
 }

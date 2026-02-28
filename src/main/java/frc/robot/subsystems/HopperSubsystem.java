@@ -3,6 +3,7 @@ package frc.robot.subsystems;
 import static edu.wpi.first.units.Units.Amps;
 
 import com.revrobotics.PersistMode;
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.ResetMode;
 import com.revrobotics.sim.SparkMaxSim;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
@@ -14,11 +15,12 @@ import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import edu.wpi.first.wpilibj.simulation.RoboRioSim;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class HopperSubsystem extends SubsystemBase {
-
+ private RelativeEncoder hopperRightEncoder;
     public static final double kWristMomentOfInertia = 0.00032; // kg * m^2
 
     private final SparkMax m_rollerMotor = new SparkMax(7, MotorType.kBrushless);
@@ -49,6 +51,17 @@ public class HopperSubsystem extends SubsystemBase {
         // the subsystem
         // such as SpeedControllers, Encoders, DigitalInputs, etc.
     }
+ @Override
+    public void periodic() {
+        double currentRPM = hopperRightEncoder.getVelocity();
+
+        SmartDashboard.putNumber("Hopper/CurrentRPM", currentRPM);
+        SmartDashboard.putNumber("Hopper/RightCurrent", m_rollerMotor.getOutputCurrent());
+        SmartDashboard.putNumber(
+                "Hopper/RightVoltage",
+                m_rollerMotor.getBusVoltage() * m_rollerMotor.getAppliedOutput());
+    }
+    // add periodic here!
 
     @Override
     public void simulationPeriodic() {

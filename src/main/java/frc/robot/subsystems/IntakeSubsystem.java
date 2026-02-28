@@ -3,6 +3,7 @@ package frc.robot.subsystems;
 import static edu.wpi.first.units.Units.Amps;
 
 import com.revrobotics.PersistMode;
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.ResetMode;
 import com.revrobotics.sim.SparkMaxSim;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
@@ -14,15 +15,16 @@ import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import edu.wpi.first.wpilibj.simulation.RoboRioSim;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class IntakeSubsystem extends SubsystemBase {
-
+    private RelativeEncoder intakeRightEncoder;
     public static final double kWristMomentOfInertia = 0.00032; // kg * m^2
 
     private final SparkMax m_rollerMotor = new SparkMax(5, MotorType.kBrushless);
-
+    private double targetRPM = 0;
     private final DCMotor m_rollerMotorGearbox = DCMotor.getNEO(1);
 
     private final FlywheelSim m_rollerSim =
@@ -48,6 +50,17 @@ public class IntakeSubsystem extends SubsystemBase {
         // Also, you can call addChild(name, sendableChild) to associate sendables with
         // the subsystem
         // such as SpeedControllers, Encoders, DigitalInputs, etc.
+    }
+
+    @Override
+    public void periodic() {
+        double currentRPM = intakeRightEncoder.getVelocity();
+
+        SmartDashboard.putNumber("Intake/CurrentRPM", currentRPM);
+        SmartDashboard.putNumber("Intake/RightCurrent", m_rollerMotor.getOutputCurrent());
+        SmartDashboard.putNumber(
+                "Intake/RightVoltage",
+                m_rollerMotor.getBusVoltage() * m_rollerMotor.getAppliedOutput());
     }
 
     @Override

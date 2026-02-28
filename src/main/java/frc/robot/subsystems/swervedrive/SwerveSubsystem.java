@@ -12,8 +12,10 @@ import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.path.Waypoint;
 import com.pathplanner.lib.util.DriveFeedforwards;
 import com.pathplanner.lib.util.FlippingUtil;
 import com.pathplanner.lib.util.swerve.SwerveSetpoint;
@@ -31,6 +33,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
@@ -38,6 +41,8 @@ import frc.robot.Constants;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
@@ -78,14 +83,16 @@ public class SwerveSubsystem extends SubsystemBase {
                         : new Pose2d(
                                 new Translation2d(Meter.of(16), Meter.of(4)),
                                 Rotation2d.fromDegrees(180));
-        // Configure the Telemetry before creating the SwerveDrive to avoid unnecessary objects
+        // Configure the Telemetry before creating the SwerveDrive to avoid unnecessary
+        // objects
         // being created.
         SwerveDriveTelemetry.verbosity = TelemetryVerbosity.HIGH;
         try {
             swerveDrive =
                     new SwerveParser(directory)
                             .createSwerveDrive(Constants.MAX_SPEED, startingPose);
-            // Alternative method if you don't want to supply the conversion factor via JSON files.
+            // Alternative method if you don't want to supply the conversion factor via JSON
+            // files.
             // swerveDrive = new SwerveParser(directory).createSwerveDrive(maximumSpeed,
             // angleConversionFactor, driveConversionFactor);
         } catch (Exception e) {
@@ -105,10 +112,12 @@ public class SwerveSubsystem extends SubsystemBase {
                 false,
                 1); // Enable if you want to resynchronize your absolute encoders and motor encoders
         // periodically when they are not moving.
-        // swerveDrive.pushOffsetsToEncoders(); // Set the absolute encoder to be used over the
+        // swerveDrive.pushOffsetsToEncoders(); // Set the absolute encoder to be used
+        // over the
         // internal encoder and push the offsets onto it. Throws warning if not possible
         if (visionDriveTest) {
-            // Stop the odometry thread if we are using vision that way we can synchronize updates
+            // Stop the odometry thread if we are using vision that way we can synchronize
+            // updates
             // better.
             swerveDrive.stopOdometryThread();
         }
@@ -248,7 +257,8 @@ public class SwerveSubsystem extends SubsystemBase {
      * @return {@link AutoBuilder#followPath(PathPlannerPath)} path command.
      */
     public Command getAutonomousCommand(String pathName) {
-        // Create a path following command using AutoBuilder. This will also trigger event markers.
+        // Create a path following command using AutoBuilder. This will also trigger
+        // event markers.
         return new PathPlannerAuto(pathName);
     }
 
@@ -259,7 +269,7 @@ public class SwerveSubsystem extends SubsystemBase {
      * @return PathFinding command
      */
     public Command driveToPose(Pose2d pose) {
-       
+
         // Create the constraints to use while pathfinding
         PathConstraints constraints =
                 new PathConstraints(
@@ -274,6 +284,51 @@ public class SwerveSubsystem extends SubsystemBase {
                 constraints,
                 edu.wpi.first.units.Units.MetersPerSecond.of(0) // Goal end velocity in meters/sec
                 );
+    }
+
+    public Command driveToPoseDeferredWithFlip(Pose2d pose) {
+
+        // Create the constraints to use while pathfinding
+        PathConstraints constraints =
+                new PathConstraints(
+                        swerveDrive.getMaximumChassisVelocity(),
+                        1.0,
+                        swerveDrive.getMaximumChassisAngularVelocity(),
+                        Units.degreesToRadians(720));
+
+        return new DeferredCommand(
+                () -> {
+                    boolean red = isRedAlliance();
+                    final Pose2d targetPose = red ? FlippingUtil.flipFieldPose(pose) : pose;
+                    return AutoBuilder.pathfindToPose(targetPose, constraints, 0);
+                },
+                Set.of(this));
+    }
+
+    public Command followWaypointsDeferred(Pose2d... poses) {
+        return Commands.defer(
+                () -> {
+                    List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(poses);
+
+                    PathConstraints constraints =
+                            new PathConstraints(
+                                    this.getSwerveDrive().getMaximumChassisVelocity(),
+                                    1.0,
+                                    this.getSwerveDrive().getMaximumChassisAngularVelocity(),
+                                    Units.degreesToRadians(720));
+
+                    PathPlannerPath depotSideHubToNeutralZone =
+                            new PathPlannerPath(
+                                    waypoints,
+                                    constraints,
+                                    null,
+                                    new GoalEndState(0, Rotation2d.fromDegrees(90)));
+
+                    depotSideHubToNeutralZone.preventFlipping = false;
+
+                    return AutoBuilder.followPath(depotSideHubToNeutralZone);
+                },
+                Set.of(this)); // <-- declare subsystem requirements explicitly
     }
 
     /**
@@ -444,7 +499,8 @@ public class SwerveSubsystem extends SubsystemBase {
             DoubleSupplier translationY,
             DoubleSupplier headingX,
             DoubleSupplier headingY) {
-        // swerveDrive.setHeadingCorrection(true); // Normally you would want heading correction for
+        // swerveDrive.setHeadingCorrection(true); // Normally you would want heading
+        // correction for
         // this kind of control.
         return run(
                 () -> {
@@ -536,7 +592,15 @@ public class SwerveSubsystem extends SubsystemBase {
      * @param initialHolonomicPose The pose to set the odometry to
      */
     public void resetOdometry(Pose2d initialHolonomicPose) {
-       
+
+        swerveDrive.resetOdometry(initialHolonomicPose);
+    }
+
+    public void resetOdometryDeferredFlip(Pose2d initialHolonomicPose) {
+        boolean red = isRedAlliance();
+        if (red) {
+            initialHolonomicPose = FlippingUtil.flipFieldPose(initialHolonomicPose);
+        }
         swerveDrive.resetOdometry(initialHolonomicPose);
     }
 

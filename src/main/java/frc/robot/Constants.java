@@ -32,6 +32,13 @@ public final class Constants {
     //    public static final PIDConstants TRANSLATION_PID = new PIDConstants(0.7, 0, 0);
     //    public static final PIDConstants ANGLE_PID       = new PIDConstants(0.4, 0, 0.01);
     //  }
+
+    public static final class OIConstants {
+        public static final int kDriverControllerPort = 0;
+        public static final int kOperatorControllerPort = 1;
+        public static final double kDriveDeadband = 0.05;
+    }
+
     public static final class FuelConstants {
         // Motor controller IDs for Fuel Mechanism motors
         public static final int FEEDER_MOTOR_ID = 3;
