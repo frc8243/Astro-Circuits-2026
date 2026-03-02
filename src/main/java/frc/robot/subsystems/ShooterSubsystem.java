@@ -24,7 +24,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 public class ShooterSubsystem extends SubsystemBase {
     private RelativeEncoder shooterRightEncoder;
     private SparkClosedLoopController shooterRightPIDController;
-    public static final double kWristMomentOfInertia = 0.00032; // kg * m^2
+    public static final double kShooterMomentOfInertia = 0.00032; // kg * m^2
     private final ClosedLoopConfig closedLoopConfigShooterRight = new ClosedLoopConfig();
     private final SparkMax m_leftRollerMotor = new SparkMax(3, MotorType.kBrushless);
     private final SparkMax m_rightRollerMotor = new SparkMax(4, MotorType.kBrushless);
@@ -34,7 +34,7 @@ public class ShooterSubsystem extends SubsystemBase {
     private final FlywheelSim m_rollerSim =
             new FlywheelSim(
                     LinearSystemId.createFlywheelSystem(
-                            m_rollerMotorGearbox, kWristMomentOfInertia, 1.0 / 4.0),
+                            m_rollerMotorGearbox, kShooterMomentOfInertia, 1.0 / 4.0),
                     m_rollerMotorGearbox,
                     1.0 / 4096.0);
 
@@ -42,7 +42,6 @@ public class ShooterSubsystem extends SubsystemBase {
     // m_rollerMotorGearbox);
     // private final SparkMaxSim m_rollerMotorSim = new SparkMaxSim(m_rollerMotor,
     // m_rollerMotorGearbox);
-    private ClosedLoopConfig shooterRightMotorConfig = new ClosedLoopConfig();
 
     public ShooterSubsystem() {
         SparkMaxConfig rightConfig = new SparkMaxConfig();
@@ -120,44 +119,48 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     public Command spinToRPM(double rpm) {
-        targetRPM = rpm;
-        return runEnd(() -> setVelocity(rpm), () -> setVelocity(0));
-    }
-
-    public Command setShooterSpeed(double speed) {
-        return startEnd(
+        return runEnd(
                 () -> {
-                    System.out.println("Speed = " + speed);
-                    m_rightRollerMotor.set(speed);
+                    setVelocity(rpm);
+                    targetRPM = rpm;
                 },
-                () -> {
-                    m_rightRollerMotor.set(0);
-                });
+                () -> setVelocity(0));
     }
 
-    public Command out(double speed) {
-        return setShooterSpeed(speed * -1);
-    }
+    // public Command setShooterSpeed(double speed) {
+    //     return startEnd(
+    //             () -> {
+    //                 System.out.println("Speed = " + speed);
+    //                 m_rightRollerMotor.set(speed);
+    //             },
+    //             () -> {
+    //                 m_rightRollerMotor.set(0);
+    //             });
+    // }
 
-    public Command in(double speed) {
-        return setShooterSpeed(speed);
-    }
+    // public Command out(double speed) {
+    //     return setShooterSpeed(speed * -1);
+    // }
 
-    public Command stop() {
-        return setShooterSpeed(0);
-    }
+    // public Command in(double speed) {
+    //     return setShooterSpeed(speed);
+    // }
+
+    // public Command stop() {
+    //     return setShooterSpeed(0);
+    // }
 
     public Current getCurrent() {
         return Amps.of(m_leftRollerMotor.getOutputCurrent());
     }
 
-    public boolean outtaking() {
-        if (getCurrentCommand() != null)
-            return getDutycycle() < 0.0 || getCurrentCommand().getName().equals("Outtake");
-        return getDutycycle() < 0.0;
-    }
+    // public boolean outtaking() {
+    //     if (getCurrentCommand() != null)
+    //         return getDutycycle() < 0.0 || getCurrentCommand().getName().equals("Outtake");
+    //     return getDutycycle() < 0.0;
+    // }
 
-    public double getDutycycle() {
-        return m_leftRollerMotor.getAppliedOutput();
-    }
+    // public double getDutycycle() {
+    //     return m_leftRollerMotor.getAppliedOutput();
+    // }
 }

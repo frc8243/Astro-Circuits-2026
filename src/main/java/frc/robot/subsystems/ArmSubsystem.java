@@ -1,9 +1,9 @@
 package frc.robot.subsystems;
 
+import com.revrobotics.PersistMode;
 import com.revrobotics.RelativeEncoder;
+import com.revrobotics.ResetMode;
 import com.revrobotics.spark.ClosedLoopSlot;
-import com.revrobotics.spark.SparkBase.PersistMode;
-import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
@@ -41,8 +41,8 @@ public class ArmSubsystem extends SubsystemBase {
                 .idleMode(wristIdleMode)
                 .smartCurrentLimit(40)
                 .softLimit
-                .forwardSoftLimit(110)
-                .reverseSoftLimit(-30)
+                .forwardSoftLimit(Units.degreesToRadians(35))
+                .reverseSoftLimit(Units.degreesToRadians(-125))
                 .forwardSoftLimitEnabled(true)
                 .reverseSoftLimitEnabled(true);
 
@@ -61,12 +61,13 @@ public class ArmSubsystem extends SubsystemBase {
                 sparkMaxConfigWrist,
                 ResetMode.kResetSafeParameters,
                 PersistMode.kPersistParameters);
+        wristEncoder.setPosition(Units.degreesToRadians(-120));
     }
 
     public enum WristAngle {
-        STOW(Units.degreesToRadians(-20)),
+        STOW(Units.degreesToRadians(-110)),
 
-        DEPLOY(Units.degreesToRadians(100));
+        DEPLOY(Units.degreesToRadians(30));
 
         private final double m_angle;
 

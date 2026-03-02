@@ -20,17 +20,17 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class IntakeSubsystem extends SubsystemBase {
-    private RelativeEncoder intakeRightEncoder;
-    public static final double kWristMomentOfInertia = 0.00032; // kg * m^2
+
+    public static final double kIntakeMomentOfInertia = 0.00032; // kg * m^2
 
     private final SparkMax m_rollerMotor = new SparkMax(5, MotorType.kBrushless);
-    private double targetRPM = 0;
+    private RelativeEncoder intakeRightEncoder = m_rollerMotor.getEncoder();
     private final DCMotor m_rollerMotorGearbox = DCMotor.getNEO(1);
 
     private final FlywheelSim m_rollerSim =
             new FlywheelSim(
                     LinearSystemId.createFlywheelSystem(
-                            m_rollerMotorGearbox, kWristMomentOfInertia, 1),
+                            m_rollerMotorGearbox, kIntakeMomentOfInertia, 1),
                     m_rollerMotorGearbox,
                     1.0 / 4096.0);
 
@@ -90,29 +90,29 @@ public class IntakeSubsystem extends SubsystemBase {
                 });
     }
 
-    public Command out(double speed) {
-        return setIntakeRoller(speed * -1);
-    }
+    // public Command out(double speed) {
+    //     return setIntakeRoller(speed * -1);
+    // }
 
     public Command in(double speed) {
         return setIntakeRoller(speed);
     }
 
-    public Command stop() {
-        return setIntakeRoller(0);
-    }
+    // public Command stop() {
+    //     return setIntakeRoller(0);
+    // }
 
     public Current getCurrent() {
         return Amps.of(m_rollerMotor.getOutputCurrent());
     }
 
-    public boolean outtaking() {
-        if (getCurrentCommand() != null)
-            return getDutycycle() < 0.0 || getCurrentCommand().getName().equals("Outtake");
-        return getDutycycle() < 0.0;
-    }
+    // public boolean outtaking() {
+    //     if (getCurrentCommand() != null)
+    //         return getDutycycle() < 0.0 || getCurrentCommand().getName().equals("Outtake");
+    //     return getDutycycle() < 0.0;
+    // }
 
-    public double getDutycycle() {
-        return m_rollerMotor.getAppliedOutput();
-    }
+    // public double getDutycycle() {
+    //     return m_rollerMotor.getAppliedOutput();
+    // }
 }

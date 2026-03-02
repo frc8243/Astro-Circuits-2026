@@ -20,17 +20,17 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class HopperSubsystem extends SubsystemBase {
- private RelativeEncoder hopperRightEncoder;
-    public static final double kWristMomentOfInertia = 0.00032; // kg * m^2
+
+    public static final double kHopperMomentOfInertia = 0.00032; // kg * m^2
 
     private final SparkMax m_rollerMotor = new SparkMax(7, MotorType.kBrushless);
-
+    private RelativeEncoder hopperRightEncoder = m_rollerMotor.getEncoder();
     private final DCMotor m_rollerMotorGearbox = DCMotor.getNEO(1);
 
     private final FlywheelSim m_rollerSim =
             new FlywheelSim(
                     LinearSystemId.createFlywheelSystem(
-                            m_rollerMotorGearbox, kWristMomentOfInertia, 1.0 / 4.0),
+                            m_rollerMotorGearbox, kHopperMomentOfInertia, 1.0 / 4.0),
                     m_rollerMotorGearbox,
                     1.0 / 4096.0);
 
@@ -51,7 +51,8 @@ public class HopperSubsystem extends SubsystemBase {
         // the subsystem
         // such as SpeedControllers, Encoders, DigitalInputs, etc.
     }
- @Override
+
+    @Override
     public void periodic() {
         double currentRPM = hopperRightEncoder.getVelocity();
 
@@ -61,7 +62,6 @@ public class HopperSubsystem extends SubsystemBase {
                 "Hopper/RightVoltage",
                 m_rollerMotor.getBusVoltage() * m_rollerMotor.getAppliedOutput());
     }
-    // add periodic here!
 
     @Override
     public void simulationPeriodic() {
@@ -90,29 +90,29 @@ public class HopperSubsystem extends SubsystemBase {
                 });
     }
 
-    public Command out(double speed) {
-        return setHopperSpeed(speed * -1);
-    }
+    // public Command out(double speed) {
+    //     return setHopperSpeed(speed * -1);
+    // }
 
     public Command in(double speed) {
         return setHopperSpeed(speed);
     }
 
-    public Command stop() {
-        return setHopperSpeed(0);
-    }
+    // public Command stop() {
+    //     return setHopperSpeed(0);
+    // }
 
     public Current getCurrent() {
         return Amps.of(m_rollerMotor.getOutputCurrent());
     }
 
-    public boolean outtaking() {
-        if (getCurrentCommand() != null)
-            return getDutycycle() < 0.0 || getCurrentCommand().getName().equals("Outtake");
-        return getDutycycle() < 0.0;
-    }
+    // public boolean outtaking() {
+    //     if (getCurrentCommand() != null)
+    //         return getDutycycle() < 0.0 || getCurrentCommand().getName().equals("Outtake");
+    //     return getDutycycle() < 0.0;
+    // }
 
-    public double getDutycycle() {
-        return m_rollerMotor.getAppliedOutput();
-    }
+    // public double getDutycycle() {
+    //     return m_rollerMotor.getAppliedOutput();
+    // }
 }

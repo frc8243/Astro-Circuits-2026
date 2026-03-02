@@ -322,7 +322,7 @@ public class SwerveSubsystem extends SubsystemBase {
                                     waypoints,
                                     constraints,
                                     null,
-                                    new GoalEndState(0, Rotation2d.fromDegrees(90)));
+                                    new GoalEndState(0, Rotation2d.fromDegrees(-90)));
 
                     depotSideHubToNeutralZone.preventFlipping = false;
 

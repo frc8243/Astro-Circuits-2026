@@ -20,17 +20,17 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class IndexerSubsystem extends SubsystemBase {
- private RelativeEncoder indexerRightEncoder;
-    public static final double kWristMomentOfInertia = 0.00032; // kg * m^2
+
+    public static final double kIndexerMomentOfInertia = 0.00032; // kg * m^2
 
     private final SparkMax m_rollerMotor = new SparkMax(2, MotorType.kBrushed);
-
+    private RelativeEncoder indexerRightEncoder = m_rollerMotor.getEncoder();
     private final DCMotor m_rollerMotorGearbox = DCMotor.getCIM(1);
 
     private final FlywheelSim m_rollerSim =
             new FlywheelSim(
                     LinearSystemId.createFlywheelSystem(
-                            m_rollerMotorGearbox, kWristMomentOfInertia, 1.0 / 4.0),
+                            m_rollerMotorGearbox, kIndexerMomentOfInertia, 1.0 / 4.0),
                     m_rollerMotorGearbox,
                     1.0 / 4096.0);
 
@@ -39,7 +39,7 @@ public class IndexerSubsystem extends SubsystemBase {
 
     public IndexerSubsystem() {
         SparkMaxConfig config = new SparkMaxConfig();
-        config.inverted(false).smartCurrentLimit(40);
+        config.inverted(false).secondaryCurrentLimit(40);
         config.idleMode(IdleMode.kCoast);
         m_rollerMotor.configure(
                 config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -51,7 +51,8 @@ public class IndexerSubsystem extends SubsystemBase {
         // the subsystem
         // such as SpeedControllers, Encoders, DigitalInputs, etc.
     }
-  @Override
+
+    @Override
     public void periodic() {
         double currentRPM = indexerRightEncoder.getVelocity();
 
@@ -61,6 +62,7 @@ public class IndexerSubsystem extends SubsystemBase {
                 "Indexer/RightVoltage",
                 m_rollerMotor.getBusVoltage() * m_rollerMotor.getAppliedOutput());
     }
+
     @Override
     public void simulationPeriodic() {
         // In this method, we update our simulation of what our arm is doing
@@ -90,7 +92,6 @@ public class IndexerSubsystem extends SubsystemBase {
     public Command setIndexerSpeed(double speed) {
         return runEnd(
                 () -> {
-                    System.out.println("Speed = " + speed);
                     m_rollerMotor.set(speed);
                 },
                 () -> {
@@ -98,29 +99,29 @@ public class IndexerSubsystem extends SubsystemBase {
                 });
     }
 
-    public Command out(double speed) {
-        return setIndexerSpeed(speed * 1);
-    }
+    // public Command out(double speed) {
+    //     return setIndexerSpeed(speed * 1);
+    // }
 
     public Command in(double speed) {
         return setIndexerSpeed(speed);
     }
 
-    public Command stop() {
-        return setIndexerSpeed(0);
-    }
+    // public Command stop() {
+    //     return setIndexerSpeed(0);
+    // }
 
     public Current getCurrent() {
         return Amps.of(m_rollerMotor.getOutputCurrent());
     }
 
-    public boolean outtaking() {
-        if (getCurrentCommand() != null)
-            return getDutycycle() < 0.0 || getCurrentCommand().getName().equals("Outtake");
-        return getDutycycle() < 0.0;
-    }
+    // public boolean outtaking() {
+    //     if (getCurrentCommand() != null)
+    //         return getDutycycle() < 0.0 || getCurrentCommand().getName().equals("Outtake");
+    //     return getDutycycle() < 0.0;
+    // }
 
-    public double getDutycycle() {
-        return m_rollerMotor.getAppliedOutput();
-    }
+    // public double getDutycycle() {
+    //     return m_rollerMotor.getAppliedOutput();
+    // }
 }

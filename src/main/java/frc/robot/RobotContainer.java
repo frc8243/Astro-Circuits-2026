@@ -54,9 +54,7 @@ public class RobotContainer {
     private SwerveInputStream driveRobotOriented;
     private SwerveInputStream driveAngularVelocityKeyboard;
     private SwerveInputStream driveDirectAngleKeyboard;
-    private static SendableChooser<Command> autoChooser;
-
-    // private ArmSubsystem arm = new ArmSubsystem();
+    private SendableChooser<Command> autoChooser;
 
     private ShooterSubsystem shooter = new ShooterSubsystem();
     private HopperSubsystem hopper = new HopperSubsystem();
@@ -228,9 +226,9 @@ public class RobotContainer {
                 .whileTrue(
                         shooter.spinToRPM(3000) // spin up
                                 .until(() -> shooter.atSpeed(3000, 100))
-                                .andThen(indexer.out(0.8).alongWith(shooter.spinToRPM(3000))));
+                                .andThen(indexer.in(-0.8).alongWith(shooter.spinToRPM(3000))));
         // operatorXbox.a().whileTrue(indexer.out(0.8).alongWith(shooter.setShooterSpeed(-0.8)));
-        operatorXbox.x().whileTrue(hopper.out(-0.4)).whileFalse(hopper.in(0.0));
+        operatorXbox.x().whileTrue(hopper.in(0.4)).whileFalse(hopper.in(0.0));
         // operatorXbox.y().whileTrue(indexer.out(0.8)).whileFalse(indexer.in(0.0));
 
         operatorXbox.b().whileTrue(intake.in(-1.0)).whileFalse(intake.in(0.0));
@@ -262,10 +260,10 @@ public class RobotContainer {
     private static final Pose2d MIDDLE_AUTO_START_POSE =
             new Pose2d(3, 4, Rotation2d.fromDegrees(0));
     private static final Pose2d MIDDLE_SHOOT_POSE = new Pose2d(3, 4, Rotation2d.fromDegrees(0));
-    private static final Pose2d DEPOT_POSE = new Pose2d(.5, 7.5, Rotation2d.fromDegrees(90));
-    private static final Pose2d DEPOT_PRE_POSE = new Pose2d(.5, 7, Rotation2d.fromDegrees(90));
+    private static final Pose2d DEPOT_POSE = new Pose2d(.5, 7.8, Rotation2d.fromDegrees(-90));
+    private static final Pose2d DEPOT_PRE_POSE = new Pose2d(.5, 7, Rotation2d.fromDegrees(-90));
     private static final Pose2d DEPOT_COLLECT_POSE =
-            new Pose2d(.5, 5.5, Rotation2d.fromDegrees(360));
+            new Pose2d(.5, 5.5, Rotation2d.fromDegrees(-90));
     private static final Pose2d OUTPOST_ZONE_POSE2D =
             new Pose2d(0.5, 0.716, Rotation2d.fromDegrees(180));
 
@@ -336,9 +334,9 @@ public class RobotContainer {
                                 () -> drivebase.resetOdometryDeferredFlip(MIDDLE_AUTO_START_POSE)),
                         // arm.goToWristAngleCommand(WristAngle.DEPLOY),
                         // intake.in(-1),
-                        drivebase.followWaypointsDeferred(DEPOT_POSE, DEPOT_PRE_POSE),
+                        drivebase.followWaypointsDeferred(DEPOT_POSE, DEPOT_COLLECT_POSE),
                         Commands.print("finished with waypoints"),
-                        drivebase.driveToPoseDeferredWithFlip(DEPOT_COLLECT_POSE),
+                        // drivebase.driveToPoseDeferredWithFlip(DEPOT_COLLECT_POSE),
                         drivebase.driveToPoseDeferredWithFlip(MIDDLE_SHOOT_POSE),
                         drivebase.driveToPoseDeferredWithFlip(OUTPOST_ZONE_POSE2D),
                         drivebase.driveToPoseDeferredWithFlip(MIDDLE_SHOOT_POSE)
