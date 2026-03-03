@@ -226,7 +226,7 @@ public class RobotContainer {
                 .whileTrue(
                         shooter.spinToRPM(3000) // spin up
                                 .until(() -> shooter.atSpeed(3000, 100))
-                                .andThen(indexer.in(-0.8).alongWith(shooter.spinToRPM(3000))));
+                                .andThen(indexer.in(0.8).alongWith(shooter.spinToRPM(3000))));
         // operatorXbox.a().whileTrue(indexer.out(0.8).alongWith(shooter.setShooterSpeed(-0.8)));
         operatorXbox.x().whileTrue(hopper.in(0.4)).whileFalse(hopper.in(0.0));
         // operatorXbox.y().whileTrue(indexer.out(0.8)).whileFalse(indexer.in(0.0));
@@ -266,6 +266,7 @@ public class RobotContainer {
             new Pose2d(.5, 5.5, Rotation2d.fromDegrees(-90));
     private static final Pose2d OUTPOST_ZONE_POSE2D =
             new Pose2d(0.5, 0.716, Rotation2d.fromDegrees(180));
+    private static final Pose2d DISRUPTOR_POSE = new Pose2d(9, 0.7, Rotation2d.fromDegrees(125));
 
     private void setupAuton() {
         autoChooser = new SendableChooser<>();
@@ -346,11 +347,31 @@ public class RobotContainer {
                         // Commands.waitUntil(() -> shooter.atSpeed(3000, 100)),
                         // indexer.out(0.8)
                         );
+
+        Command disruptor =
+                Commands.sequence(
+                        Commands.runOnce(
+                                () -> drivebase.resetOdometryDeferredFlip(LEFT_AUTO_START_POSE)),
+                        // arm.goToWristAngleCommand(WristAngle.DEPLOY),
+                        // intake.in(-1),
+                        // drivebase.followWaypointsDeferred(DEPOT_POSE, DEPOT_COLLECT_POSE),
+                        Commands.print("finished with waypoints"),
+                        // drivebase.driveToPoseDeferredWithFlip(DEPOT_COLLECT_POSE),
+                        // drivebase.driveToPoseDeferredWithFlip(FRONT_POSE),
+                        drivebase.driveToPoseDeferredWithFlip(DISRUPTOR_POSE),
+                        drivebase.driveToPoseDeferredWithFlip(MIDDLE_SHOOT_POSE)
+                        //     drivebase.driveToPose(OUTPOST_TRENCH_SHOOT_POSE)
+                        // intake.in(0.0),
+                        // shooter.spinToRPM(3000),
+                        // Commands.waitUntil(() -> shooter.atSpeed(3000, 100)),
+                        // indexer.out(0.8)
+                        );
         autoChooser.addOption("drivestraight", driveStraight);
         autoChooser.addOption("outpostNeutralZone", outpostNeutralZone);
         autoChooser.addOption("depotNeutralZone", depotNeutralZone);
         autoChooser.addOption("middleDepotOutpost", middleDepotOutpost);
         autoChooser.addOption("middleDepotOutpostWayPoints", middleDepotOutpostWayPoints);
+        autoChooser.addOption("disruptor", disruptor);
         autoChooser.setDefaultOption("donothing", Commands.none());
         SmartDashboard.putData("Autos/Selector", autoChooser);
     }

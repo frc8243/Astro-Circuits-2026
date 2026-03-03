@@ -45,12 +45,12 @@ public class ShooterSubsystem extends SubsystemBase {
 
     public ShooterSubsystem() {
         SparkMaxConfig rightConfig = new SparkMaxConfig();
-        rightConfig.inverted(false).smartCurrentLimit(40);
+        rightConfig.inverted(true).smartCurrentLimit(40);
         rightConfig.idleMode(IdleMode.kCoast);
         rightConfig.encoder.positionConversionFactor(1.0 / (1.5));
         rightConfig.encoder.velocityConversionFactor(1.0 / (1.5));
         rightConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder);
-        rightConfig.closedLoop.pid(.1, 0, 0);
+        rightConfig.closedLoop.pid(.2, 0, 0);
         rightConfig.closedLoop.outputRange(-1.0, 1.0);
         closedLoopConfigShooterRight.feedForward.sva(0, 0.57 * 0.508 * (60 / 6.2832), 0);
 
