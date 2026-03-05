@@ -124,7 +124,7 @@ public class ShooterSubsystem extends SubsystemBase {
                     setVelocity(rpm);
                     targetRPM = rpm;
                 },
-                () -> setVelocity(0));
+                () -> stopShooter()); // setVelocity(0));
     }
 
     // public Command setShooterSpeed(double speed) {
@@ -146,9 +146,10 @@ public class ShooterSubsystem extends SubsystemBase {
     //     return setShooterSpeed(speed);
     // }
 
-    // public Command stop() {
-    //     return setShooterSpeed(0);
-    // }
+    public void stopShooter() {
+        targetRPM = 0;
+        m_rightRollerMotor.set(0.0);
+    }
 
     public Current getCurrent() {
         return Amps.of(m_leftRollerMotor.getOutputCurrent());
