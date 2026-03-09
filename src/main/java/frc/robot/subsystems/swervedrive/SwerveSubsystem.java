@@ -291,7 +291,7 @@ public class SwerveSubsystem extends SubsystemBase {
         // Create the constraints to use while pathfinding
         PathConstraints constraints =
                 new PathConstraints(
-                        swerveDrive.getMaximumChassisVelocity(),
+                        swerveDrive.getMaximumChassisVelocity() / 4,
                         1.0,
                         swerveDrive.getMaximumChassisAngularVelocity(),
                         Units.degreesToRadians(720));
@@ -602,6 +602,30 @@ public class SwerveSubsystem extends SubsystemBase {
             initialHolonomicPose = FlippingUtil.flipFieldPose(initialHolonomicPose);
         }
         swerveDrive.resetOdometry(initialHolonomicPose);
+    }
+
+    public Command snakeDriveCommand(
+            DoubleSupplier translationX, DoubleSupplier translationY, DoubleSupplier stickAngle) {
+        return run(
+                () -> {
+                    Translation2d scaledInputs =
+                            SwerveMath.scaleTranslation(
+                                    new Translation2d(
+                                            translationX.getAsDouble()
+                                                    * swerveDrive.getMaximumChassisVelocity(),
+                                            translationY.getAsDouble()
+                                                    * swerveDrive.getMaximumChassisVelocity()),
+                                    0.8);
+
+                    driveFieldOriented(
+                            swerveDrive.swerveController.getTargetSpeeds(
+                                    scaledInputs.getX(),
+                                    scaledInputs.getY(),
+                                    Math.cos(stickAngle.getAsDouble()),
+                                    Math.sin(stickAngle.getAsDouble()),
+                                    swerveDrive.getOdometryHeading().getRadians(),
+                                    swerveDrive.getMaximumChassisVelocity()));
+                });
     }
 
     /**

@@ -70,7 +70,7 @@ public class RobotContainer {
                                 drivebase.getSwerveDrive(),
                                 () -> driverXbox.getLeftY() * -1,
                                 () -> driverXbox.getLeftX() * -1)
-                        .withControllerRotationAxis(() -> -driverXbox.getRightX())
+                        .withControllerRotationAxis(() -> driverXbox.getRightX())
                         .deadband(OperatorConstants.DEADBAND)
                         .scaleTranslation(0.8)
                         .allianceRelativeControl(true);
@@ -137,7 +137,7 @@ public class RobotContainer {
         }
         createSwerveInputStreams();
         // Configure the trigger bindings
-        // hopper.setDefaultCommand(hopper.out(0));
+        hopper.setDefaultCommand(hopper.in(0));
         // shooter.setDefaultCommand(shooter.defaultBehaviorCommand());
         arm.setDefaultCommand(
                 new RunCommand(
@@ -208,10 +208,27 @@ public class RobotContainer {
 
         driverXbox.a().onTrue((Commands.runOnce(drivebase::zeroGyro)));
         driverXbox.x().onTrue(Commands.runOnce(drivebase::addFakeVisionReading));
+        driverXbox.y().onTrue(hopper.in(0.0));
 
-        operatorXbox.povLeft().whileTrue(arm.goToWristAngleCommand(WristAngle.DEPLOY));
-        operatorXbox.povRight().whileTrue(arm.goToWristAngleCommand(WristAngle.STOW));
+        operatorXbox.povDown().whileTrue(arm.goToWristAngleCommand(WristAngle.DEPLOY));
+        operatorXbox.povUp().whileTrue(arm.goToWristAngleCommand(WristAngle.STOW));
         operatorXbox.back().whileTrue(Commands.none());
+
+        driverXbox
+                .b()
+                .whileTrue(
+                        drivebase.snakeDriveCommand(
+                                () -> -driverXbox.getLeftY(),
+                                () -> -driverXbox.getLeftX(),
+                                () -> {
+                                    double x = -driverXbox.getLeftX();
+                                    double y = -driverXbox.getLeftY();
+                                    if (Math.abs(x) < 0.1 && Math.abs(y) < 0.1) {
+                                        return drivebase.getHeading().getRadians();
+                                    }
+                                    return Math.atan2(x, y);
+                                }));
+
         //        operatorXbox.a().whileTrue(shooter.out(-0.8)).whileFalse(shooter.in(0.0));
         // operatorXbox
         //         .a()
@@ -226,11 +243,29 @@ public class RobotContainer {
                 .whileTrue(
                         shooter.spinToRPM(3000) // spin up
                                 .until(() -> shooter.atSpeed(3000, 100))
-                                .andThen(indexer.in(0.8).alongWith(shooter.spinToRPM(3000))));
-        // operatorXbox.a().whileTrue(indexer.out(0.8).alongWith(shooter.setShooterSpeed(-0.8)));
-        operatorXbox.x().whileTrue(hopper.in(0.4)).whileFalse(hopper.in(0.0));
-        // operatorXbox.y().whileTrue(indexer.out(0.8)).whileFalse(indexer.in(0.0));
+                                .andThen(
+                                        indexer.in(0.8)
+                                                .alongWith(shooter.spinToRPM(3000))
+                                                .alongWith(hopper.in(0.4))));
 
+        operatorXbox
+                .x()
+                .whileTrue(
+                        shooter.spinToRPM(2000) // spin up
+                                .until(() -> shooter.atSpeed(2000, 100))
+                                .andThen(
+                                        indexer.in(0.8)
+                                                .alongWith(shooter.spinToRPM(2000))
+                                                .alongWith(hopper.in(0.4))));
+
+        // operatorXbox.a().whileTrue(indexer.out(0.8).alongWith(shooter.setShooterSpeed(-0.8)));
+        // operatorXbox.x().whileTrue(hopper.in(0.4)).whileFalse(hopper.in(0.0));
+        // operatorXbox.y().whileTrue(indexer.out(0.8)).whileFalse(indexer.in(0.0));
+        operatorXbox
+                .y()
+                .whileTrue(
+                        arm.oscillateCommand(WristAngle.DEPLOY, WristAngle.SHAKE, 0.3)
+                                .alongWith(intake.in(-0.5)));
         operatorXbox.b().whileTrue(intake.in(-1.0)).whileFalse(intake.in(0.0));
     }
 
@@ -276,23 +311,36 @@ public class RobotContainer {
                         Commands.runOnce(
                                 () -> drivebase.resetOdometryDeferredFlip(AUTO_START_POSE)),
                         drivebase.driveToPoseDeferredWithFlip(STRAIGHT_POSE));
+        // shooter.spinToRPM(3000),
+        // Commands.waitUntil(() -> shooter.atSpeed(3000, 100)),
+        // indexer.in(-0.8));
+
+        Command middleshoot =
+                Commands.sequence(
+                        Commands.runOnce(
+                                () -> drivebase.resetOdometryDeferredFlip(MIDDLE_SHOOT_POSE)),
+                        hopper.in(0.4),
+                        shooter.spinToRPM(3000) // spin up
+                                .until(() -> shooter.atSpeed(3000, 100))
+                                .andThen(indexer.in(0.8).alongWith(shooter.spinToRPM(3000))));
+
+        // drivebase.driveToPoseDeferredWithFlip(STRAIGHT_POSE));
 
         Command outpostNeutralZone =
                 Commands.sequence(
                         Commands.runOnce(
                                 () -> drivebase.resetOdometryDeferredFlip(RIGHT_AUTO_START_POSE)),
                         drivebase.driveToPoseDeferredWithFlip(STRAIGHT_POSE),
-                        // arm.goToWristAngleCommand(WristAngle.DEPLOY),
-                        // intake.in(-1),
+                        arm.goToWristAngleCommand(WristAngle.DEPLOY),
+                        intake.in(-1),
                         drivebase.driveToPoseDeferredWithFlip(NEUTRAL_ZONE_POSE2D),
                         drivebase.driveToPoseDeferredWithFlip(RIGHT_AUTO_RETURN_POSE),
-                        drivebase.driveToPoseDeferredWithFlip(OUTPOST_TRENCH_SHOOT_POSE)
-                        // drivebase.driveToPose(MIDDLE_SHOOT_POSE)
-                        // intake.in(0.0),
-                        // shooter.spinToRPM(3000),
-                        // Commands.waitUntil(() -> shooter.atSpeed(3000, 100)),
-                        // indexer.out(0.8)
-                        );
+                        drivebase.driveToPoseDeferredWithFlip(OUTPOST_TRENCH_SHOOT_POSE),
+                        drivebase.driveToPose(MIDDLE_SHOOT_POSE),
+                        intake.in(0.0),
+                        shooter.spinToRPM(3000),
+                        Commands.waitUntil(() -> shooter.atSpeed(3000, 100)),
+                        indexer.in(-0.8));
 
         Command depotNeutralZone =
                 Commands.sequence(
@@ -300,35 +348,33 @@ public class RobotContainer {
                                 () -> drivebase.resetOdometryDeferredFlip(LEFT_AUTO_START_POSE)),
                         // drivebase.driveToPose(STRAIGHT_POSE),
                         drivebase.driveToPoseDeferredWithFlip(FRONT_POSE),
-                        // arm.goToWristAngleCommand(WristAngle.DEPLOY),
-                        // intake.in(-1),
-                        // drivebase.driveToPose(STRAIGHT_POSE),
+                        arm.goToWristAngleCommand(WristAngle.DEPLOY),
+                        intake.in(-1),
+                        drivebase.driveToPose(STRAIGHT_POSE),
                         drivebase.driveToPoseDeferredWithFlip(MIDDLE_ZONE_POSE2D),
                         drivebase.driveToPoseDeferredWithFlip(LEFT_AUTO_RETURN_POSE),
-                        drivebase.driveToPoseDeferredWithFlip(DEPOT_TRENCH_SHOOT_POSE)
-                        // intake.in(0.0),
-                        // shooter.spinToRPM(3000),
-                        // Commands.waitUntil(() -> shooter.atSpeed(3000, 100)),
-                        // indexer.out(0.8)
-                        );
+                        drivebase.driveToPoseDeferredWithFlip(DEPOT_TRENCH_SHOOT_POSE),
+                        intake.in(0.0),
+                        shooter.spinToRPM(3000),
+                        Commands.waitUntil(() -> shooter.atSpeed(3000, 100)),
+                        indexer.in(-0.8));
 
         Command middleDepotOutpost =
                 Commands.sequence(
                         Commands.runOnce(
                                 () -> drivebase.resetOdometryDeferredFlip(MIDDLE_AUTO_START_POSE)),
-                        // arm.goToWristAngleCommand(WristAngle.DEPLOY),
-                        // intake.in(-1),
+                        arm.goToWristAngleCommand(WristAngle.DEPLOY),
+                        intake.in(-1),
                         drivebase.driveToPoseDeferredWithFlip(DEPOT_POSE),
                         drivebase.driveToPoseDeferredWithFlip(DEPOT_COLLECT_POSE),
                         drivebase.driveToPoseDeferredWithFlip(MIDDLE_SHOOT_POSE),
                         drivebase.driveToPoseDeferredWithFlip(OUTPOST_ZONE_POSE2D),
-                        drivebase.driveToPoseDeferredWithFlip(MIDDLE_SHOOT_POSE)
-                        //     drivebase.driveToPose(OUTPOST_TRENCH_SHOOT_POSE)
-                        // intake.in(0.0),
-                        // shooter.spinToRPM(3000),
-                        // Commands.waitUntil(() -> shooter.atSpeed(3000, 100)),
-                        // indexer.out(0.8)
-                        );
+                        drivebase.driveToPoseDeferredWithFlip(MIDDLE_SHOOT_POSE),
+                        drivebase.driveToPose(OUTPOST_TRENCH_SHOOT_POSE),
+                        intake.in(0.0),
+                        shooter.spinToRPM(3000),
+                        Commands.waitUntil(() -> shooter.atSpeed(3000, 100)),
+                        indexer.in(-0.8));
         Command middleDepotOutpostWayPoints =
                 Commands.sequence(
                         Commands.runOnce(
@@ -367,6 +413,7 @@ public class RobotContainer {
                         // indexer.out(0.8)
                         );
         autoChooser.addOption("drivestraight", driveStraight);
+        autoChooser.addOption("middleshoot", middleshoot);
         autoChooser.addOption("outpostNeutralZone", outpostNeutralZone);
         autoChooser.addOption("depotNeutralZone", depotNeutralZone);
         autoChooser.addOption("middleDepotOutpost", middleDepotOutpost);

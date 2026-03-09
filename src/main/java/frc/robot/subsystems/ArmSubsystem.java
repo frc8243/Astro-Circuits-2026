@@ -66,7 +66,7 @@ public class ArmSubsystem extends SubsystemBase {
 
     public enum WristAngle {
         STOW(Units.degreesToRadians(-110)),
-
+        SHAKE(Units.degreesToRadians(-80)),
         DEPLOY(Units.degreesToRadians(30));
 
         private final double m_angle;
@@ -111,5 +111,13 @@ public class ArmSubsystem extends SubsystemBase {
     public void manualControl(double velocity) {
         armWristMotor.set(velocity * 0.5);
         SmartDashboard.putNumber("wrist/manualSpeed", velocity);
+    }
+
+    public Command oscillateCommand(WristAngle angle1, WristAngle angle2, double seconds) {
+        return this.run(() -> goToWristAngle(angle1.getAngle()))
+                .withTimeout(seconds)
+                .andThen(this.run(() -> goToWristAngle(angle2.getAngle())).withTimeout(seconds))
+                .repeatedly()
+                .finallyDo(() -> goToWristAngle(WristAngle.STOW.getAngle()));
     }
 }

@@ -127,6 +127,18 @@ public class ShooterSubsystem extends SubsystemBase {
                 () -> stopShooter()); // setVelocity(0));
     }
 
+    public Command shootClose() {
+        return spinToRPM(1000);
+    }
+
+    public Command shootMid() {
+        return spinToRPM(3000);
+    }
+
+    public Command shootFar() {
+        return spinToRPM(3800);
+    }
+
     // public Command setShooterSpeed(double speed) {
     //     return startEnd(
     //             () -> {
