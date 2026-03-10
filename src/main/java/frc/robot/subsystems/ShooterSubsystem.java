@@ -38,21 +38,17 @@ public class ShooterSubsystem extends SubsystemBase {
                     m_rollerMotorGearbox,
                     1.0 / 4096.0);
 
-    // private final SparkMaxSim m_rollerMotorSim = new SparkMaxSim(m_rollerMotor,
-    // m_rollerMotorGearbox);
-    // private final SparkMaxSim m_rollerMotorSim = new SparkMaxSim(m_rollerMotor,
-    // m_rollerMotorGearbox);
-
     public ShooterSubsystem() {
         SparkMaxConfig rightConfig = new SparkMaxConfig();
         rightConfig.inverted(true).smartCurrentLimit(40);
         rightConfig.idleMode(IdleMode.kCoast);
-        rightConfig.encoder.positionConversionFactor(1.0 / (1.5));
-        rightConfig.encoder.velocityConversionFactor(1.0 / (1.5));
+        rightConfig.encoder.positionConversionFactor(1.0 / (1.5) / 60.0);
+        rightConfig.encoder.velocityConversionFactor(1.0); // (1.0 / (1.5));
         rightConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder);
-        rightConfig.closedLoop.pid(.2, 0, 0);
+        rightConfig.closedLoop.pid(0, 0, 0);
         rightConfig.closedLoop.outputRange(-1.0, 1.0);
-        closedLoopConfigShooterRight.feedForward.sva(0, 0.57 * 0.508 * (60 / 6.2832), 0);
+        closedLoopConfigShooterRight.feedForward.sva(
+                0, 12.0 / 5676, 0); // 0.57 * 0.508 * (60 / 6.2832), 0);
 
         rightConfig.apply(closedLoopConfigShooterRight);
         shooterRightPIDController = m_rightRollerMotor.getClosedLoopController();

@@ -241,11 +241,11 @@ public class RobotContainer {
         operatorXbox
                 .a()
                 .whileTrue(
-                        shooter.spinToRPM(3000) // spin up
-                                .until(() -> shooter.atSpeed(3000, 100))
+                        shooter.spinToRPM(4000) // spin up
+                                .until(() -> shooter.atSpeed(4000, 100))
                                 .andThen(
                                         indexer.in(0.8)
-                                                .alongWith(shooter.spinToRPM(3000))
+                                                .alongWith(shooter.spinToRPM(4000))
                                                 .alongWith(hopper.in(0.4))));
 
         operatorXbox
@@ -264,7 +264,7 @@ public class RobotContainer {
         operatorXbox
                 .y()
                 .whileTrue(
-                        arm.oscillateCommand(WristAngle.DEPLOY, WristAngle.SHAKE, 0.3)
+                        arm.oscillateCommand(WristAngle.DEPLOY, WristAngle.SHAKE, 0.5)
                                 .alongWith(intake.in(-0.5)));
         operatorXbox.b().whileTrue(intake.in(-1.0)).whileFalse(intake.in(0.0));
     }
@@ -273,7 +273,7 @@ public class RobotContainer {
             new Pose2d(4, 0.7, Rotation2d.fromDegrees(0));
     private static final Pose2d RIGHT_AUTO_RETURN_POSE =
             new Pose2d(6, 0.7, Rotation2d.fromDegrees(0));
-    private static final Pose2d STRAIGHT_POSE = new Pose2d(7.45, 0.7, Rotation2d.fromDegrees(90));
+    private static final Pose2d STRAIGHT_POSE = new Pose2d(7.45, 0.7, Rotation2d.fromDegrees(0));
     private static final Pose2d NEUTRAL_ZONE_POSE2D =
             new Pose2d(7.7, 4, Rotation2d.fromDegrees(90));
     private static final Pose2d RIGHT_SHOOT_POSE_ = new Pose2d(3, 0.5, Rotation2d.fromDegrees(0));
