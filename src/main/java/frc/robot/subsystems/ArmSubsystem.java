@@ -66,7 +66,7 @@ public class ArmSubsystem extends SubsystemBase {
 
     public enum WristAngle {
         STOW(Units.degreesToRadians(-110)),
-        SHAKE(Units.degreesToRadians(-60)),
+        SHAKE(Units.degreesToRadians(-100)),
         DEPLOY(Units.degreesToRadians(30));
 
         private final double m_angle;

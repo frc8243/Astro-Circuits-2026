@@ -241,11 +241,11 @@ public class RobotContainer {
         operatorXbox
                 .a()
                 .whileTrue(
-                        shooter.spinToRPM(4000) // spin up
-                                .until(() -> shooter.atSpeed(4000, 100))
+                        shooter.spinToRPM(5000) // spin up
+                                .until(() -> shooter.atSpeed(5000, 100))
                                 .andThen(
                                         indexer.in(0.8)
-                                                .alongWith(shooter.spinToRPM(4000))
+                                                .alongWith(shooter.spinToRPM(5000))
                                                 .alongWith(hopper.in(0.4))));
 
         operatorXbox
@@ -264,7 +264,7 @@ public class RobotContainer {
         operatorXbox
                 .y()
                 .whileTrue(
-                        arm.oscillateCommand(WristAngle.DEPLOY, WristAngle.SHAKE, 0.5)
+                        arm.oscillateCommand(WristAngle.DEPLOY, WristAngle.SHAKE, 0.8) // 1.0
                                 .alongWith(intake.in(-0.5)));
         operatorXbox.b().whileTrue(intake.in(-1.0)).whileFalse(intake.in(0.0));
     }
@@ -308,9 +308,16 @@ public class RobotContainer {
 
         Command driveStraight =
                 Commands.sequence(
-                        Commands.runOnce(
-                                () -> drivebase.resetOdometryDeferredFlip(AUTO_START_POSE)),
-                        drivebase.driveToPoseDeferredWithFlip(STRAIGHT_POSE));
+                                Commands.runOnce(
+                                        () -> drivebase.resetOdometryDeferredFlip(AUTO_START_POSE)),
+                                arm.goToWristAngleCommand(WristAngle.DEPLOY).withTimeout(1.5),
+                                drivebase.driveToPoseDeferredWithFlip(STRAIGHT_POSE),
+                                hopper.in(0.4),
+                                shooter.spinToRPM(5000)
+                                        .until(() -> shooter.atSpeed(5000, 100))
+                                        .andThen(
+                                                indexer.in(0.8).alongWith(shooter.spinToRPM(5000))))
+                        .alongWith(intake.in(-1));
         // shooter.spinToRPM(3000),
         // Commands.waitUntil(() -> shooter.atSpeed(3000, 100)),
         // indexer.in(-0.8));
