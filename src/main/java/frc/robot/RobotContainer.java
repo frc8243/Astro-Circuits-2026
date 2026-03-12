@@ -231,31 +231,38 @@ public class RobotContainer {
 
         //        operatorXbox.a().whileTrue(shooter.out(-0.8)).whileFalse(shooter.in(0.0));
         // operatorXbox
-        //         .a()
+        //         .rightBumper()
         //         .whileTrue(
         //                 Commands.startEnd(
-        //                         () -> shooter.setVelocity(1000.0),
-        //                         () -> shooter.setVelocity(0.0),
+        //                         () -> shooter.spinToRPM(1000.0),
+        //                         () -> shooter.spinToRPM(0.0),
         //                         shooter));
+
+        // operatorXbox
+        //         .a()
+        //         .whileTrue(
+        //                 shooter.spinToRPM(2000) // spin up
+        //                         .until(() -> shooter.atSpeed(2000, 100))
+        //                         .andThen((shooter.spinToRPM(2000))));
 
         operatorXbox
                 .a()
                 .whileTrue(
-                        shooter.spinToRPM(5000) // spin up
-                                .until(() -> shooter.atSpeed(5000, 100))
+                        shooter.spinToRPM(3400) // spin up      3850
+                                .until(() -> shooter.atSpeed(3400, 100))
                                 .andThen(
                                         indexer.in(0.8)
-                                                .alongWith(shooter.spinToRPM(5000))
+                                                .alongWith(shooter.spinToRPM(3400))
                                                 .alongWith(hopper.in(0.4))));
 
         operatorXbox
                 .x()
                 .whileTrue(
-                        shooter.spinToRPM(2000) // spin up
-                                .until(() -> shooter.atSpeed(2000, 100))
+                        shooter.spinToRPM(2900) // spin up
+                                .until(() -> shooter.atSpeed(2900, 100))
                                 .andThen(
                                         indexer.in(0.8)
-                                                .alongWith(shooter.spinToRPM(2000))
+                                                .alongWith(shooter.spinToRPM(2900))
                                                 .alongWith(hopper.in(0.4))));
 
         // operatorXbox.a().whileTrue(indexer.out(0.8).alongWith(shooter.setShooterSpeed(-0.8)));

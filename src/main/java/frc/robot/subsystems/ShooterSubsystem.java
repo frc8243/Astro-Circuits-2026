@@ -42,13 +42,14 @@ public class ShooterSubsystem extends SubsystemBase {
         SparkMaxConfig rightConfig = new SparkMaxConfig();
         rightConfig.inverted(true).smartCurrentLimit(40);
         rightConfig.idleMode(IdleMode.kCoast);
-        rightConfig.encoder.positionConversionFactor(1.0 / (1.5) / 60.0);
-        rightConfig.encoder.velocityConversionFactor(1.0); // (1.0 / (1.5));
+        rightConfig.encoder.positionConversionFactor(1.0 / (1.5));
+        rightConfig.encoder.velocityConversionFactor(1 / 1.5); // (1.0 / (1.5));
         rightConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder);
-        rightConfig.closedLoop.pid(0, 0, 0);
+        rightConfig.closedLoop.pid(0.00004, 0, 0);
         rightConfig.closedLoop.outputRange(-1.0, 1.0);
+        double wheelMaxRPM = 5676.0 / 1.5; // 3784 RPM
         closedLoopConfigShooterRight.feedForward.sva(
-                0, 12.0 / 5676, 0); // 0.57 * 0.508 * (60 / 6.2832), 0);
+                0, 12.0 / wheelMaxRPM * (2000 / 2057.), 0); // 0.57 * 0.508 * (60 / 6.2832), 0);
 
         rightConfig.apply(closedLoopConfigShooterRight);
         shooterRightPIDController = m_rightRollerMotor.getClosedLoopController();
@@ -77,9 +78,11 @@ public class ShooterSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         double currentRPM = shooterRightEncoder.getVelocity();
-
+        double error = targetRPM - currentRPM;
         SmartDashboard.putNumber("Shooter/CurrentRPM", currentRPM);
         SmartDashboard.putNumber("Shooter/TargetRPM", targetRPM);
+        SmartDashboard.putNumber("Shooter/Error", error); // NEW
+        SmartDashboard.putNumber("Shooter/ErrorPercent", (error / targetRPM) * 100); // NEW
         SmartDashboard.putNumber("Shooter/RightCurrent", m_rightRollerMotor.getOutputCurrent());
         SmartDashboard.putNumber(
                 "Shooter/RightVoltage",
@@ -88,6 +91,7 @@ public class ShooterSubsystem extends SubsystemBase {
         SmartDashboard.putNumber(
                 "Shooter/LeftVoltage",
                 m_leftRollerMotor.getBusVoltage() * m_leftRollerMotor.getAppliedOutput());
+        SmartDashboard.putBoolean("Shooter/AtSpeed", atSpeed(targetRPM, 100)); // NEW
     }
 
     @Override
@@ -156,7 +160,7 @@ public class ShooterSubsystem extends SubsystemBase {
 
     public void stopShooter() {
         targetRPM = 0;
-        m_rightRollerMotor.set(0.0);
+        m_rightRollerMotor.set(0.0); // Bypasses controller
     }
 
     public Current getCurrent() {
