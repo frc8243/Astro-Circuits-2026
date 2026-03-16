@@ -258,11 +258,11 @@ public class RobotContainer {
         operatorXbox
                 .x()
                 .whileTrue(
-                        shooter.spinToRPM(2900) // spin up
-                                .until(() -> shooter.atSpeed(2900, 100))
+                        shooter.spinToRPM(3100) // spin up
+                                .until(() -> shooter.atSpeed(3100, 100))
                                 .andThen(
                                         indexer.in(0.8)
-                                                .alongWith(shooter.spinToRPM(2900))
+                                                .alongWith(shooter.spinToRPM(3100))
                                                 .alongWith(hopper.in(0.4))));
 
         // operatorXbox.a().whileTrue(indexer.out(0.8).alongWith(shooter.setShooterSpeed(-0.8)));
@@ -296,7 +296,7 @@ public class RobotContainer {
             new Pose2d(4, 7.4, Rotation2d.fromDegrees(270));
     private static final Pose2d LEFT_AUTO_RETURN_POSE =
             new Pose2d(7.7, 7.4, Rotation2d.fromDegrees(0));
-             private static final Pose2d LEFT_RETURN_SHOOT_POSE =
+    private static final Pose2d LEFT_RETURN_SHOOT_POSE =
             new Pose2d(3, 7.4, Rotation2d.fromDegrees(0));
 
     private static final Pose2d FRONT_POSE = new Pose2d(7.5, 7.4, Rotation2d.fromDegrees(270));
@@ -339,10 +339,17 @@ public class RobotContainer {
                         Commands.runOnce(
                                 () -> drivebase.resetOdometryDeferredFlip(MIDDLE_AUTO_START_POSE)),
                         drivebase.driveToPoseDeferredWithFlip(MIDDLE_SHOOT_POSE),
-                        hopper.in(0.4),
-                        shooter.spinToRPM(3000) // spin up
+                        // hopper.in(0.4),
+                        // shooter.spinToRPM(3000) // spin up
+                        //         .until(() -> shooter.atSpeed(3000, 100))
+                        //         .andThen(indexer.in(0.8).alongWith(shooter.spinToRPM(3000)))
+                        shooter.spinToRPM(3000)
                                 .until(() -> shooter.atSpeed(3000, 100))
-                                .andThen(indexer.in(0.8).alongWith(shooter.spinToRPM(3000))));
+                                .andThen(
+                                        indexer.in(0.8)
+                                                .alongWith(shooter.spinToRPM(3000))
+                                                .alongWith(hopper.in(0.4)))
+                                .withTimeout(3));
 
         Command middleshootdepot =
                 Commands.sequence(
@@ -409,18 +416,25 @@ public class RobotContainer {
                                 () -> drivebase.resetOdometryDeferredFlip(LEFT_AUTO_START_POSE)),
                         // drivebase.driveToPose(STRAIGHT_POSE),
                         drivebase.driveToPoseDeferredWithFlip(FRONT_POSE),
-                        // arm.goToWristAngleCommand(WristAngle.DEPLOY),
-                        // intake.in(-1),
+                        arm.goToWristAngleCommand(WristAngle.DEPLOY),
+                        intake.in(-1),
                         // drivebase.driveToPoseDeferredWithFlip(STRAIGHT_POSE),
                         drivebase.driveToPoseDeferredWithFlip(MIDDLE_ZONE_POSE2D),
                         drivebase.driveToPoseDeferredWithFlip(LEFT_AUTO_RETURN_POSE),
-                         drivebase.driveToPoseDeferredWithFlip(LEFT_RETURN_SHOOT_POSE),
-                        drivebase.driveToPoseDeferredWithFlip(DEPOT_TRENCH_SHOOT_POSE)
+                        drivebase.driveToPoseDeferredWithFlip(LEFT_RETURN_SHOOT_POSE),
+                        drivebase.driveToPoseDeferredWithFlip(DEPOT_TRENCH_SHOOT_POSE),
                         // intake.in(0.0),
                         // shooter.spinToRPM(3000),
                         // Commands.waitUntil(() -> shooter.atSpeed(3000, 100)),
                         // indexer.in(-0.8)
-                        );
+                        drivebase.driveToPoseDeferredWithFlip(MIDDLE_SHOOT_POSE),
+                        shooter.spinToRPM(3000)
+                                .until(() -> shooter.atSpeed(3000, 100))
+                                .andThen(
+                                        indexer.in(0.8)
+                                                .alongWith(shooter.spinToRPM(3000))
+                                                .alongWith(hopper.in(0.4)))
+                                .withTimeout(3));
 
         Command middleDepotOutpost =
                 Commands.sequence(
