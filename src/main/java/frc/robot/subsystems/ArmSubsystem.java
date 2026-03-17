@@ -96,7 +96,7 @@ public class ArmSubsystem extends SubsystemBase {
     }
 
     public Command goToWristAngleCommand(WristAngle angleEnum) {
-        return this.run(
+        return this.runOnce(
                 () -> {
                     goToWristAngle(angleEnum.getAngle());
                     this.angleEnum = angleEnum;

@@ -273,7 +273,12 @@ public class RobotContainer {
                 .whileTrue(
                         arm.oscillateCommand(WristAngle.DEPLOY, WristAngle.SHAKE, 0.8) // 1.0
                                 .alongWith(intake.in(-0.5)));
-        operatorXbox.b().whileTrue(intake.in(-1.0)).whileFalse(intake.in(0.0));
+        operatorXbox
+                .b()
+                .whileTrue(
+                        intake.in(-1.0).alongWith(arm.goToWristAngleCommand(WristAngle.DEPLOY))
+                        // .whileFalse(intake.in(0.0)
+                        );
     }
 
     private static final Pose2d RIGHT_AUTO_START_POSE =
@@ -289,7 +294,7 @@ public class RobotContainer {
             new Pose2d(7.7, 4, Rotation2d.fromDegrees(90));
     private static final Pose2d RIGHT_SHOOT_POSE_ = new Pose2d(3, 0.5, Rotation2d.fromDegrees(0));
     private static final Pose2d OUTPOST_TRENCH_SHOOT_POSE =
-            new Pose2d(3, .7, Rotation2d.fromDegrees(60));
+            new Pose2d(3, 1.3, Rotation2d.fromDegrees(60));
     private static final Pose2d DEPOT_TRENCH_SHOOT_POSE =
             new Pose2d(3, 7.5, Rotation2d.fromDegrees(-60));
     private static final Pose2d LEFT_AUTO_START_POSE =
@@ -343,13 +348,13 @@ public class RobotContainer {
                         // shooter.spinToRPM(3000) // spin up
                         //         .until(() -> shooter.atSpeed(3000, 100))
                         //         .andThen(indexer.in(0.8).alongWith(shooter.spinToRPM(3000)))
-                        shooter.spinToRPM(3000)
-                                .until(() -> shooter.atSpeed(3000, 100))
+                        shooter.spinToRPM(2900)
+                                .until(() -> shooter.atSpeed(2900, 100))
                                 .andThen(
                                         indexer.in(0.8)
-                                                .alongWith(shooter.spinToRPM(3000))
+                                                .alongWith(shooter.spinToRPM(2900))
                                                 .alongWith(hopper.in(0.4)))
-                                .withTimeout(3));
+                                .withTimeout(8));
 
         Command middleshootdepot =
                 Commands.sequence(
@@ -396,19 +401,30 @@ public class RobotContainer {
                 Commands.sequence(
                         Commands.runOnce(
                                 () -> drivebase.resetOdometryDeferredFlip(RIGHT_AUTO_START_POSE)),
-                        drivebase.driveToPoseDeferredWithFlip(STRAIGHT_POSE),
+                        drivebase
+                                .driveToPoseDeferredWithFlip(STRAIGHT_POSE)
+                                // .alongWith(
+                                //         arm.goToWristAngleCommand(WristAngle.DEPLOY)
+                                .alongWith(intake.in(-1.0))
+                                .withTimeout(2),
+
                         // arm.goToWristAngleCommand(WristAngle.DEPLOY),
                         // intake.in(-1),
-                        drivebase.driveToPoseDeferredWithFlip(NEUTRAL_ZONE_POSE2D),
+                        drivebase
+                                .driveToPoseDeferredWithFlip(NEUTRAL_ZONE_POSE2D)
+                                .alongWith(
+                                        arm.goToWristAngleCommand(WristAngle.DEPLOY)
+                                                .alongWith(intake.in(-1).withTimeout(2))),
                         drivebase.driveToPoseDeferredWithFlip(RIGHT_AUTO_RETURN_POSE),
-                        drivebase.driveToPoseDeferredWithFlip(RIGHT_RETURN_SHOOT_POSE),
-                        drivebase.driveToPoseDeferredWithFlip(OUTPOST_TRENCH_SHOOT_POSE)
+                        drivebase
+                                .driveToPoseDeferredWithFlip(RIGHT_RETURN_SHOOT_POSE)
+                                .alongWith(intake.in(0).withTimeout(2)),
+                        drivebase.driveToPoseDeferredWithFlip(OUTPOST_TRENCH_SHOOT_POSE),
                         // drivebase.driveToPoseDeferredWithFlip(MIDDLE_SHOOT_POSE)
                         // intake.in(0.0),
-                        // shooter.spinToRPM(3000),
-                        // Commands.waitUntil(() -> shooter.atSpeed(3000, 100)),
-                        // indexer.in(-0.8)
-                        );
+                        shooter.spinToRPM(3000),
+                        Commands.waitUntil(() -> shooter.atSpeed(3000, 100)),
+                        indexer.in(-0.8));
 
         Command depotNeutralZone =
                 Commands.sequence(
