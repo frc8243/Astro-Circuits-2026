@@ -396,6 +396,99 @@ public class RobotContainer {
         //         .andThen(indexer.in(0.8).alongWith(shooter.spinToRPM(3000))));
 
         // drivebase.driveToPoseDeferredWithFlip(STRAIGHT_POSE));
+        Command outpostNeutralZoneNew =
+                Commands.sequence(
+                        // ============================================================
+                        // INITIALIZATION
+                        // ============================================================
+                        Commands.runOnce(
+                                () -> drivebase.resetOdometryDeferredFlip(RIGHT_AUTO_START_POSE)),
+                        Commands.print("outpostNeutralZone: Starting autonomous"),
+
+                        // ============================================================
+                        // STEP 1: Drive to STRAIGHT_POSE while collecting
+                        // ============================================================
+                        Commands.print("Step 1: Drive to STRAIGHT_POSE"),
+
+                        // Start intake before driving
+                        intake.setIntakeRoller(-1.0),
+
+                        // Drive to first waypoint
+                        drivebase
+                                .driveToPoseDeferredWithFlip(STRAIGHT_POSE)
+                                .withTimeout(3.0), // Safety timeout
+                        Commands.print("Arrived at STRAIGHT_POSE"),
+
+                        // ============================================================
+                        // STEP 2: Drive to NEUTRAL_ZONE to collect game piece
+                        // ============================================================
+                        Commands.print("Step 2: Drive to NEUTRAL_ZONE"),
+
+                        // Deploy arm for collection (arm command finishes immediately)
+                        arm.goToWristAngleCommand(WristAngle.DEPLOY),
+
+                        // Drive to neutral zone (intake still running from Step 1)
+                        drivebase
+                                .driveToPoseDeferredWithFlip(NEUTRAL_ZONE_POSE2D)
+                                .withTimeout(4.0), // Give plenty of time to reach
+                        Commands.print("Arrived at NEUTRAL_ZONE"),
+
+                        // ============================================================
+                        // STEP 3: Return to scoring position
+                        // ============================================================
+                        Commands.print("Step 3: Return to RIGHT_AUTO_RETURN_POSE"),
+
+                        // Drive back (intake still running)
+                        drivebase
+                                .driveToPoseDeferredWithFlip(RIGHT_AUTO_RETURN_POSE)
+                                .withTimeout(4.0),
+                        Commands.print("Arrived at RIGHT_AUTO_RETURN_POSE"),
+
+                        // ============================================================
+                        // STEP 4: Drive to shooting position
+                        // ============================================================
+                        Commands.print("Step 4: Drive to shooting position"),
+                        drivebase
+                                .driveToPoseDeferredWithFlip(RIGHT_RETURN_SHOOT_POSE)
+                                .withTimeout(3.0),
+
+                        // Stop intake when we arrive at shooting position
+                        intake.setIntakeRoller(0),
+                        Commands.print("Arrived at RIGHT_RETURN_SHOOT_POSE, intake stopped"),
+
+                        // ============================================================
+                        // STEP 5: Align for shot
+                        // ============================================================
+                        Commands.print("Step 5: Align for trench shot"),
+                        drivebase
+                                .driveToPoseDeferredWithFlip(OUTPOST_TRENCH_SHOOT_POSE)
+                                .withTimeout(3.0),
+                        Commands.print("Aligned for shot"),
+
+                        // ============================================================
+                        // STEP 6: Shoot sequence
+                        // ============================================================
+                        Commands.print("Step 6: Shooting"),
+
+                        // Spin up shooter with timeout safety
+                        Commands.race(
+                                shooter.spinToRPM(3000).until(() -> shooter.atSpeed(3000, 100)),
+                                Commands.waitSeconds(2.0) // Don't wait forever if shooter fails
+                                ),
+
+                        // Feed and shoot (with timeout)
+                        Commands.parallel(
+                                        shooter.spinToRPM(3000), // Keep shooter at speed
+                                        indexer.in(0.8), // Feed from indexer
+                                        hopper.in(0.4) // Feed from hopper
+                                        )
+                                .withTimeout(3.0), // Shoot for 3 seconds max
+
+                        // Clean up - stop everything
+                        Commands.parallel(
+                                intake.setIntakeRoller(0),
+                                Commands.runOnce(() -> shooter.stopShooter())),
+                        Commands.print("outpostNeutralZone: Complete"));
 
         Command outpostNeutralZone =
                 Commands.sequence(
@@ -511,10 +604,12 @@ public class RobotContainer {
         autoChooser.addOption("middleshoot", middleshoot);
         autoChooser.addOption("middleshootdepot", middleshootdepot);
         autoChooser.addOption("outpostNeutralZone", outpostNeutralZone);
+        autoChooser.addOption("outpostNeutralZoneNew", outpostNeutralZoneNew);
+
         autoChooser.addOption("depotNeutralZone", depotNeutralZone);
         autoChooser.addOption("middleDepotOutpost", middleDepotOutpost);
         autoChooser.addOption("disruptor", disruptor);
-        autoChooser.setDefaultOption("donothing", Commands.none());
+        autoChooser.setDefaultOption("donothing", Commands.none());   
         SmartDashboard.putData("Autos/Selector", autoChooser);
     }
 
