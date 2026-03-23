@@ -210,24 +210,24 @@ public class RobotContainer {
         driverXbox.x().onTrue(Commands.runOnce(drivebase::addFakeVisionReading));
         driverXbox.y().onTrue(hopper.in(0.0));
 
-        operatorXbox.povDown().whileTrue(arm.goToWristAngleCommand(WristAngle.DEPLOY));
-        operatorXbox.povUp().whileTrue(arm.goToWristAngleCommand(WristAngle.STOW));
-        operatorXbox.back().whileTrue(Commands.none());
+        // operatorXbox.povDown().whileTrue(arm.goToWristAngleCommand(WristAngle.DEPLOY));
+        // operatorXbox.povUp().whileTrue(arm.goToWristAngleCommand(WristAngle.STOW));
+        // operatorXbox.back().whileTrue(Commands.none());
 
-        driverXbox
-                .b()
-                .whileTrue(
-                        drivebase.snakeDriveCommand(
-                                () -> -driverXbox.getLeftY(),
-                                () -> -driverXbox.getLeftX(),
-                                () -> {
-                                    double x = -driverXbox.getLeftX();
-                                    double y = -driverXbox.getLeftY();
-                                    if (Math.abs(x) < 0.1 && Math.abs(y) < 0.1) {
-                                        return drivebase.getHeading().getRadians();
-                                    }
-                                    return Math.atan2(x, y);
-                                }));
+        // driverXbox
+        //         .b()
+        //         .whileTrue(
+        //                 drivebase.snakeDriveCommand(
+        //                         () -> -driverXbox.getLeftY(),
+        //                         () -> -driverXbox.getLeftX(),
+        //                         () -> {
+        //                             double x = -driverXbox.getLeftX();
+        //                             double y = -driverXbox.getLeftY();
+        //                             if (Math.abs(x) < 0.1 && Math.abs(y) < 0.1) {
+        //                                 return drivebase.getHeading().getRadians();
+        //                             }
+        //                             return Math.atan2(x, y);
+        //                         }));
 
         // operatorXbox.a().whileTrue(shooter.out(-0.8)).whileFalse(shooter.in(0.0));
         // operatorXbox
@@ -268,17 +268,17 @@ public class RobotContainer {
         // operatorXbox.a().whileTrue(indexer.out(0.8).alongWith(shooter.setShooterSpeed(-0.8)));
         // operatorXbox.x().whileTrue(hopper.in(0.4)).whileFalse(hopper.in(0.0));
         // operatorXbox.y().whileTrue(indexer.out(0.8)).whileFalse(indexer.in(0.0));
-        operatorXbox
-                .y()
-                .whileTrue(
-                        arm.oscillateCommand(WristAngle.DEPLOY, WristAngle.SHAKE, 0.8) // 1.0
-                                .alongWith(intake.in(-0.5)));
-        operatorXbox
-                .b()
-                .whileTrue(
-                        intake.in(-1.0).alongWith(arm.goToWristAngleCommand(WristAngle.DEPLOY))
-                        // .whileFalse(intake.in(0.0)
-                        );
+        // operatorXbox
+        //         .y()
+        //         .whileTrue(
+        //                 arm.oscillateCommand(WristAngle.DEPLOY, WristAngle.SHAKE, 0.8) // 1.0
+        //                         .alongWith(intake.in(-0.5)));
+        // operatorXbox
+        //         .b()
+        //         .whileTrue(
+        //                 intake.in(-1.0).alongWith(arm.goToWristAngleCommand(WristAngle.DEPLOY))
+        //                 // .whileFalse(intake.in(0.0)
+        //                 );
     }
 
     private static final Pose2d RIGHT_AUTO_START_POSE =
@@ -294,7 +294,7 @@ public class RobotContainer {
             new Pose2d(7.7, 4, Rotation2d.fromDegrees(90));
     private static final Pose2d RIGHT_SHOOT_POSE_ = new Pose2d(3, 0.5, Rotation2d.fromDegrees(0));
     private static final Pose2d OUTPOST_TRENCH_SHOOT_POSE =
-            new Pose2d(3, 1.3, Rotation2d.fromDegrees(60));
+            new Pose2d(3, 1.3, Rotation2d.fromDegrees(65));
     private static final Pose2d DEPOT_TRENCH_SHOOT_POSE =
             new Pose2d(3, 7.5, Rotation2d.fromDegrees(-60));
     private static final Pose2d LEFT_AUTO_START_POSE =
@@ -324,6 +324,15 @@ public class RobotContainer {
     private void setupAuton() {
         autoChooser = new SendableChooser<>();
 
+        Command justShoot =
+                Commands.sequence(
+                        shooter.spinToRPM(3500)
+                                .until(() -> shooter.atSpeed(3500, 100))
+                                .andThen(
+                                        indexer.in(0.8)
+                                                .alongWith(shooter.spinToRPM(3500))
+                                                .alongWith(hopper.in(0.4)))
+                                .withTimeout(8));
         Command driveStraight =
                 Commands.sequence(
                         Commands.runOnce(
@@ -344,10 +353,6 @@ public class RobotContainer {
                         Commands.runOnce(
                                 () -> drivebase.resetOdometryDeferredFlip(MIDDLE_AUTO_START_POSE)),
                         drivebase.driveToPoseDeferredWithFlip(MIDDLE_SHOOT_POSE),
-                        // hopper.in(0.4),
-                        // shooter.spinToRPM(3000) // spin up
-                        //         .until(() -> shooter.atSpeed(3000, 100))
-                        //         .andThen(indexer.in(0.8).alongWith(shooter.spinToRPM(3000)))
                         shooter.spinToRPM(2900)
                                 .until(() -> shooter.atSpeed(2900, 100))
                                 .andThen(
@@ -355,6 +360,30 @@ public class RobotContainer {
                                                 .alongWith(shooter.spinToRPM(2900))
                                                 .alongWith(hopper.in(0.4)))
                                 .withTimeout(8));
+
+        Command middleshootOUTPOST =
+                Commands.sequence(
+                        Commands.runOnce(
+                                () -> drivebase.resetOdometryDeferredFlip(MIDDLE_AUTO_START_POSE)),
+                        drivebase.driveToPoseDeferredWithFlip(MIDDLE_SHOOT_POSE),
+                        shooter.spinToRPM(2900)
+                                .until(() -> shooter.atSpeed(2900, 100))
+                                .andThen(
+                                        indexer.in(0.8)
+                                                .alongWith(shooter.spinToRPM(2900))
+                                                .alongWith(hopper.in(0.4)))
+                                .withTimeout(3),
+                        hopper.setHopperSpeed(0),
+                        drivebase.driveToPoseDeferredWithFlip(OUTPOST_ZONE_POSE2D),
+                        Commands.waitSeconds(1),
+                        drivebase.driveToPoseDeferredWithFlip(MIDDLE_SHOOT_POSE),
+                        shooter.spinToRPM(2900)
+                                .until(() -> shooter.atSpeed(2900, 100))
+                                .andThen(
+                                        indexer.in(0.8)
+                                                .alongWith(shooter.spinToRPM(2900))
+                                                .alongWith(hopper.in(0.4)))
+                                .withTimeout(3));
 
         Command middleshootdepot =
                 Commands.sequence(
@@ -396,101 +425,40 @@ public class RobotContainer {
         //         .andThen(indexer.in(0.8).alongWith(shooter.spinToRPM(3000))));
 
         // drivebase.driveToPoseDeferredWithFlip(STRAIGHT_POSE));
-        Command outpostNeutralZoneNew =
-                Commands.sequence(
-                        // ============================================================
-                        // INITIALIZATION
-                        // ============================================================
-                        Commands.runOnce(
-                                () -> drivebase.resetOdometryDeferredFlip(RIGHT_AUTO_START_POSE)),
-                        Commands.print("outpostNeutralZone: Starting autonomous"),
-
-                        // ============================================================
-                        // STEP 1: Drive to STRAIGHT_POSE while collecting
-                        // ============================================================
-                        Commands.print("Step 1: Drive to STRAIGHT_POSE"),
-
-                        // Start intake before driving
-                        intake.setIntakeRoller(-1.0),
-
-                        // Drive to first waypoint
-                        drivebase
-                                .driveToPoseDeferredWithFlip(STRAIGHT_POSE)
-                                .withTimeout(3.0), // Safety timeout
-                        Commands.print("Arrived at STRAIGHT_POSE"),
-
-                        // ============================================================
-                        // STEP 2: Drive to NEUTRAL_ZONE to collect game piece
-                        // ============================================================
-                        Commands.print("Step 2: Drive to NEUTRAL_ZONE"),
-
-                        // Deploy arm for collection (arm command finishes immediately)
-                        arm.goToWristAngleCommand(WristAngle.DEPLOY),
-
-                        // Drive to neutral zone (intake still running from Step 1)
-                        drivebase
-                                .driveToPoseDeferredWithFlip(NEUTRAL_ZONE_POSE2D)
-                                .withTimeout(4.0), // Give plenty of time to reach
-                        Commands.print("Arrived at NEUTRAL_ZONE"),
-
-                        // ============================================================
-                        // STEP 3: Return to scoring position
-                        // ============================================================
-                        Commands.print("Step 3: Return to RIGHT_AUTO_RETURN_POSE"),
-
-                        // Drive back (intake still running)
-                        drivebase
-                                .driveToPoseDeferredWithFlip(RIGHT_AUTO_RETURN_POSE)
-                                .withTimeout(4.0),
-                        Commands.print("Arrived at RIGHT_AUTO_RETURN_POSE"),
-
-                        // ============================================================
-                        // STEP 4: Drive to shooting position
-                        // ============================================================
-                        Commands.print("Step 4: Drive to shooting position"),
-                        drivebase
-                                .driveToPoseDeferredWithFlip(RIGHT_RETURN_SHOOT_POSE)
-                                .withTimeout(3.0),
-
-                        // Stop intake when we arrive at shooting position
-                        intake.setIntakeRoller(0),
-                        Commands.print("Arrived at RIGHT_RETURN_SHOOT_POSE, intake stopped"),
-
-                        // ============================================================
-                        // STEP 5: Align for shot
-                        // ============================================================
-                        Commands.print("Step 5: Align for trench shot"),
-                        drivebase
-                                .driveToPoseDeferredWithFlip(OUTPOST_TRENCH_SHOOT_POSE)
-                                .withTimeout(3.0),
-                        Commands.print("Aligned for shot"),
-
-                        // ============================================================
-                        // STEP 6: Shoot sequence
-                        // ============================================================
-                        Commands.print("Step 6: Shooting"),
-
-                        // Spin up shooter with timeout safety
-                        Commands.race(
-                                shooter.spinToRPM(3000).until(() -> shooter.atSpeed(3000, 100)),
-                                Commands.waitSeconds(2.0) // Don't wait forever if shooter fails
-                                ),
-
-                        // Feed and shoot (with timeout)
-                        Commands.parallel(
-                                        shooter.spinToRPM(3000), // Keep shooter at speed
-                                        indexer.in(0.8), // Feed from indexer
-                                        hopper.in(0.4) // Feed from hopper
-                                        )
-                                .withTimeout(3.0), // Shoot for 3 seconds max
-
-                        // Clean up - stop everything
-                        Commands.parallel(
-                                intake.setIntakeRoller(0),
-                                Commands.runOnce(() -> shooter.stopShooter())),
-                        Commands.print("outpostNeutralZone: Complete"));
 
         Command outpostNeutralZone =
+                Commands.sequence(
+                        Commands.runOnce(
+                                () -> drivebase.resetOdometryDeferredFlip(RIGHT_AUTO_START_POSE)),
+                        // Drive to straight pose while deploying arm and running intake
+                        drivebase
+                                .driveToPoseDeferredWithFlip(STRAIGHT_POSE)
+                                .alongWith(
+                                        arm.goToWristAngleCommand(WristAngle.DEPLOY),
+                                        intake.in(-1.0))
+                                .withTimeout(4),
+                        // Drive to neutral zone while keeping intake running
+                        drivebase
+                                .driveToPoseDeferredWithFlip(NEUTRAL_ZONE_POSE2D)
+                                .alongWith(intake.in(-1.0))
+                                .withTimeout(4),
+                        // Drive back
+                        drivebase.driveToPoseDeferredWithFlip(RIGHT_AUTO_RETURN_POSE),
+                        // .withTimeout(4),
+                        // Drive to shoot position
+                        drivebase.driveToPoseDeferredWithFlip(RIGHT_RETURN_SHOOT_POSE),
+                        drivebase.driveToPoseDeferredWithFlip(OUTPOST_TRENCH_SHOOT_POSE),
+                        // .withTimeout(4),
+                        // Shoot
+                        shooter.spinToRPM(3000)
+                                .until(() -> shooter.atSpeed(3000, 100))
+                                .andThen(
+                                        indexer.in(0.8)
+                                                .alongWith(shooter.spinToRPM(3000))
+                                                .alongWith(hopper.in(0.4)))
+                                .withTimeout(3));
+
+        Command outpostNeutralZone2 =
                 Commands.sequence(
                         Commands.runOnce(
                                 () -> drivebase.resetOdometryDeferredFlip(RIGHT_AUTO_START_POSE)),
@@ -524,11 +492,18 @@ public class RobotContainer {
                         Commands.runOnce(
                                 () -> drivebase.resetOdometryDeferredFlip(LEFT_AUTO_START_POSE)),
                         // drivebase.driveToPose(STRAIGHT_POSE),
-                        drivebase.driveToPoseDeferredWithFlip(FRONT_POSE),
-                        arm.goToWristAngleCommand(WristAngle.DEPLOY),
-                        intake.in(-1),
+                        drivebase
+                                .driveToPoseDeferredWithFlip(FRONT_POSE)
+                                .alongWith(
+                                        arm.goToWristAngleCommand(WristAngle.DEPLOY),
+                                        intake.in(-1.0))
+                                .withTimeout(4),
+
                         // drivebase.driveToPoseDeferredWithFlip(STRAIGHT_POSE),
-                        drivebase.driveToPoseDeferredWithFlip(MIDDLE_ZONE_POSE2D),
+                        drivebase
+                                .driveToPoseDeferredWithFlip(MIDDLE_ZONE_POSE2D)
+                                .alongWith(intake.in(-1.0))
+                                .withTimeout(4),
                         drivebase.driveToPoseDeferredWithFlip(LEFT_AUTO_RETURN_POSE),
                         drivebase.driveToPoseDeferredWithFlip(LEFT_RETURN_SHOOT_POSE),
                         drivebase.driveToPoseDeferredWithFlip(DEPOT_TRENCH_SHOOT_POSE),
@@ -536,7 +511,8 @@ public class RobotContainer {
                         // shooter.spinToRPM(3000),
                         // Commands.waitUntil(() -> shooter.atSpeed(3000, 100)),
                         // indexer.in(-0.8)
-                        drivebase.driveToPoseDeferredWithFlip(MIDDLE_SHOOT_POSE),
+                        drivebase.driveToPoseDeferredWithFlip(
+                                new Pose2d(3, 6.7, Rotation2d.fromDegrees(-60))),
                         shooter.spinToRPM(3000)
                                 .until(() -> shooter.atSpeed(3000, 100))
                                 .andThen(
@@ -600,16 +576,19 @@ public class RobotContainer {
                         // Commands.waitUntil(() -> shooter.atSpeed(3000, 100)),
                         // indexer.out(0.8)
                         );
-        autoChooser.addOption("drivestraight", driveStraight);
+        // autoChooser.addOption("drivestraight", driveStraight);
+        autoChooser.addOption("justshoot", justShoot);
+
         autoChooser.addOption("middleshoot", middleshoot);
         autoChooser.addOption("middleshootdepot", middleshootdepot);
         autoChooser.addOption("outpostNeutralZone", outpostNeutralZone);
-        autoChooser.addOption("outpostNeutralZoneNew", outpostNeutralZoneNew);
 
         autoChooser.addOption("depotNeutralZone", depotNeutralZone);
         autoChooser.addOption("middleDepotOutpost", middleDepotOutpost);
         autoChooser.addOption("disruptor", disruptor);
-        autoChooser.setDefaultOption("donothing", Commands.none());   
+        autoChooser.addOption("middleShootOutpost", middleshootOUTPOST);
+
+        autoChooser.setDefaultOption("donothing", Commands.none());
         SmartDashboard.putData("Autos/Selector", autoChooser);
     }
 
