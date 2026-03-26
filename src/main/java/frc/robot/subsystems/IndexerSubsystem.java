@@ -39,7 +39,7 @@ public class IndexerSubsystem extends SubsystemBase {
 
     public IndexerSubsystem() {
         SparkMaxConfig config = new SparkMaxConfig();
-        config.inverted(false).secondaryCurrentLimit(40);
+        config.inverted(false).smartCurrentLimit(40);
         config.idleMode(IdleMode.kCoast);
         m_rollerMotor.configure(
                 config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);

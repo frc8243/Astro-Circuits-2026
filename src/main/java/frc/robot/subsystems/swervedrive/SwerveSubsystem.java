@@ -38,6 +38,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
 import frc.robot.Constants;
+import frc.robot.FieldConstants;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -226,6 +227,28 @@ public class SwerveSubsystem extends SubsystemBase {
      *
      * @return A {@link Command} which will run the alignment.
      */
+    public Command aimAtHub(DoubleSupplier translationX, DoubleSupplier translationY) {
+        return run(
+                () -> {
+                    Pose2d hub =
+                            isRedAlliance()
+                                    ? FieldConstants.HubConstants.RED_CENTER_OF_HUB_POSE
+                                    : FieldConstants.HubConstants.BLUE_CENTER_OF_HUB_POSE;
+
+                    Translation2d toHub = hub.getTranslation().minus(getPose().getTranslation());
+                    double desiredAngle = Math.atan2(toHub.getY(), toHub.getX());
+                    double error = MathUtil.angleModulus(desiredAngle - getHeading().getRadians());
+
+                    driveFieldOriented(
+                            new ChassisSpeeds(
+                                    translationX.getAsDouble()
+                                            * swerveDrive.getMaximumChassisAngularVelocity(),
+                                    translationY.getAsDouble()
+                                            * swerveDrive.getMaximumChassisAngularVelocity(),
+                                    MathUtil.clamp(3.5 * error, -3.0, 3.0)));
+                });
+    }
+
     public Command aimAtTarget() {
         return run(
                 () -> {

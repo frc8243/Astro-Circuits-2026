@@ -82,7 +82,8 @@ public class ShooterSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("Shooter/CurrentRPM", currentRPM);
         SmartDashboard.putNumber("Shooter/TargetRPM", targetRPM);
         SmartDashboard.putNumber("Shooter/Error", error); // NEW
-        SmartDashboard.putNumber("Shooter/ErrorPercent", (error / targetRPM) * 100); // NEW
+        SmartDashboard.putNumber(
+                "Shooter/ErrorPercent", (targetRPM != 0 ? (error / targetRPM) * 100 : 0)); // NEW
         SmartDashboard.putNumber("Shooter/RightCurrent", m_rightRollerMotor.getOutputCurrent());
         SmartDashboard.putNumber(
                 "Shooter/RightVoltage",

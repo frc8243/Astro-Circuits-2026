@@ -49,7 +49,7 @@ public class Vision {
                         drive.getRobotVelocity().vxMetersPerSecond,
                         drive.getRobotVelocity().vyMetersPerSecond);
 
-        //reject if driving to0 fast, > 80% of robot speed! 
+        // reject if driving to0 fast, > 80% of robot speed!
         if (linearSpeed > 0.8 * drive.getMaximumChassisVelocity()) return;
 
         var est = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(limelightName);
