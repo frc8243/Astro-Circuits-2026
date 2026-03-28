@@ -278,12 +278,12 @@ public class RobotContainer {
         //         .whileTrue(
         //                 arm.oscillateCommand(WristAngle.DEPLOY, WristAngle.SHAKE, 0.8) // 1.0
         //                         .alongWith(intake.in(-0.5)));
-        // operatorXbox
-        //         .b()
-        //         .whileTrue(
-        //                 intake.in(-1.0).alongWith(arm.goToWristAngleCommand(WristAngle.DEPLOY))
-        //                 // .whileFalse(intake.in(0.0)
-        //                 );
+        operatorXbox
+                .b()
+                .whileTrue(
+                        intake.in(-1.0) // .alongWith(arm.goToWristAngleCommand(WristAngle.DEPLOY))
+                        // .whileFalse(intake.in(0.0)
+                        );
     }
 
     private static final Pose2d RIGHT_AUTO_START_POSE =
@@ -312,14 +312,13 @@ public class RobotContainer {
     private static final Pose2d FRONT_POSE = new Pose2d(7.5, 7.4, Rotation2d.fromDegrees(270));
     private static final Pose2d MIDDLE_ZONE_POSE2D =
             new Pose2d(7.7, 4, Rotation2d.fromDegrees(270));
-    private static final Pose2d DEPOT_SIDE_POSE =
-            new Pose2d(1.15, 5.7, Rotation2d.fromDegrees(180));
+    private static final Pose2d DEPOT_SIDE_POSE = new Pose2d(1.6, 5.7, Rotation2d.fromDegrees(180));
     private static final Pose2d DEPOT_SIDE_COLLECT_POSE =
-            new Pose2d(0.5, 5.7, Rotation2d.fromDegrees(180));
+            new Pose2d(1.0, 5.7, Rotation2d.fromDegrees(180));
     private static final Pose2d DEPOT_SIDE_POSE2 =
-            new Pose2d(1.15, 6.2, Rotation2d.fromDegrees(180));
+            new Pose2d(1.6, 6.2, Rotation2d.fromDegrees(180));
     private static final Pose2d DEPOT_SIDE_COLLECT_POSE2 =
-            new Pose2d(0.5, 6.2, Rotation2d.fromDegrees(180));
+            new Pose2d(1.0, 6.2, Rotation2d.fromDegrees(180));
     private static final Pose2d AUTO_START_POSE = new Pose2d(4, 1, Rotation2d.fromDegrees(0));
 
     // private static final Pose2d MIDDLE_AUTO_START_POSE =
@@ -434,7 +433,7 @@ public class RobotContainer {
                                 .driveToPoseDeferredWithFlip(DEPOT_POSE)
                                 .alongWith(
                                         arm.goToWristAngleCommand(WristAngle.DEPLOY),
-                                        intake.in(-1).withTimeout(5)),
+                                        intake.in(-1).withTimeout(1)),
                         // Collect from depot
                         drivebase.driveToPoseDeferredWithFlip(DEPOT_COLLECT_POSE),
                         // .alongWith(intake.in(-1)),
@@ -462,18 +461,19 @@ public class RobotContainer {
                                         indexer.in(0.8)
                                                 .alongWith(shooter.spinToRPM(3000))
                                                 .alongWith(hopper.in(0.4)))
-                                .withTimeout(5),
+                                .withTimeout(3),
                         // Drive to depot and collect with arm down and intake running
                         drivebase
                                 .driveToPoseDeferredWithFlip(DEPOT_SIDE_POSE)
-                                .alongWith(
+                                .deadlineWith(
                                         arm.goToWristAngleCommand(WristAngle.DEPLOY),
-                                        intake.in(-1).withTimeout(8)),
+                                        intake.in(-1)),
                         drivebase.driveToPoseDeferredWithFlip(DEPOT_SIDE_COLLECT_POSE),
-                        // Collect from depot
-                        drivebase.driveToPoseDeferredWithFlip(DEPOT_SIDE_POSE),
+                        // drivebase.driveToPoseDeferredWithFlip(DEPOT_SIDE_POSE),
                         drivebase.driveToPoseDeferredWithFlip(DEPOT_SIDE_POSE2),
-                        drivebase.driveToPoseDeferredWithFlip(DEPOT_SIDE_COLLECT_POSE2),
+                        drivebase
+                                .driveToPoseDeferredWithFlip(DEPOT_SIDE_COLLECT_POSE2)
+                                .deadlineWith(intake.in(-1)),
                         drivebase.driveToPoseDeferredWithFlip(DEPOT_SIDE_POSE2),
                         // .alongWith(intake.in(-1)),
 
@@ -485,7 +485,7 @@ public class RobotContainer {
                                         indexer.in(0.8)
                                                 .alongWith(shooter.spinToRPM(3000))
                                                 .alongWith(hopper.in(0.4)))
-                                .withTimeout(5));
+                                .withTimeout(7));
 
         // hopper.in(0.4),
         // shooter.spinToRPM(3000) // spin up

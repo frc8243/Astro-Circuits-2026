@@ -2,6 +2,7 @@ package frc.robot.subsystems.swervedrive;
 
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.Timer;
@@ -22,9 +23,9 @@ public class Vision {
         // set camera position on robot - measure these values!
         LimelightHelpers.setCameraPose_RobotSpace(
                 limelightName,
-                0.0, // forward from robot center (meters, + = forward)
-                0.0, // left from robot center (meters, + = left)
-                0.0, // up from floor (meters)
+                Units.inchesToMeters(2.0), // forward from robot center (meters, + = forward)
+                Units.inchesToMeters(2.0), // left from robot center (meters, + = left)
+                Units.inchesToMeters(20.0), // up from floor (meters)
                 0.0, // roll (degrees)
                 0.0, // pitch (degrees, + = tilted back)
                 0.0); // yaw (degrees, + = rotated left)

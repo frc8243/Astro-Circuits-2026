@@ -64,10 +64,10 @@ public class SwerveSubsystem extends SubsystemBase {
     private final SwerveDrive swerveDrive;
 
     /** Enable vision odometry updates while driving. */
-    private final boolean visionDriveTest = true;
+    private final boolean visionDriveTest = false;
 
     /** Limlight class to keep an accurate odometry. LL4 IP--> http://10.82.43.15:5800 */
-    private Vision vision = new Vision("limelight-main");
+    private Vision vision = new Vision("");
 
     /**
      * Initialize {@link SwerveDrive} with the directory provided.
@@ -150,6 +150,8 @@ public class SwerveSubsystem extends SubsystemBase {
         if (visionDriveTest) {
             swerveDrive.updateOdometry();
             vision.updatePose(swerveDrive);
+        } else {
+            swerveDrive.updateOdometry();
         }
     }
 
@@ -241,10 +243,12 @@ public class SwerveSubsystem extends SubsystemBase {
 
                     driveFieldOriented(
                             new ChassisSpeeds(
-                                    translationX.getAsDouble()
-                                            * swerveDrive.getMaximumChassisAngularVelocity(),
-                                    translationY.getAsDouble()
-                                            * swerveDrive.getMaximumChassisAngularVelocity(),
+                                    0,
+                                    0,
+                                    // translationX.getAsDouble()
+                                    //         * swerveDrive.getMaximumChassisAngularVelocity(),
+                                    // translationY.getAsDouble()
+                                    //         * swerveDrive.getMaximumChassisAngularVelocity(),
                                     MathUtil.clamp(3.5 * error, -3.0, 3.0)));
                 });
     }
