@@ -840,4 +840,14 @@ public class SwerveSubsystem extends SubsystemBase {
     public SwerveDrive getSwerveDrive() {
         return swerveDrive;
     }
+
+    private double speedScale = 1.0;
+
+    public void setSpeedScale(double scale) {
+        this.speedScale = scale;
+    }
+
+    public double getSpeedScale() {
+        return speedScale;
+    }
 }

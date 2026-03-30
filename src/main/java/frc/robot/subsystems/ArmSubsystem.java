@@ -109,7 +109,7 @@ public class ArmSubsystem extends SubsystemBase {
     }
 
     public void manualControl(double velocity) {
-        armWristMotor.set(velocity * 0.5);
+        armWristMotor.set(velocity * 0.25);
         SmartDashboard.putNumber("wrist/manualSpeed", velocity);
     }
 
@@ -119,5 +119,9 @@ public class ArmSubsystem extends SubsystemBase {
                 .andThen(this.run(() -> goToWristAngle(angle2.getAngle())).withTimeout(seconds))
                 .repeatedly()
                 .finallyDo(() -> goToWristAngle(WristAngle.STOW.getAngle()));
+    }
+
+    public Command setEncoderToDeployPosition() {
+        return this.runOnce(() -> wristEncoder.setPosition(0.0));
     }
 }

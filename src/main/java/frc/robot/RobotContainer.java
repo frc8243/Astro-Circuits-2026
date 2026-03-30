@@ -68,8 +68,8 @@ public class RobotContainer {
         driveAngularVelocity =
                 SwerveInputStream.of(
                                 drivebase.getSwerveDrive(),
-                                () -> driverXbox.getLeftY() * -1,
-                                () -> driverXbox.getLeftX() * -1)
+                                () -> driverXbox.getLeftY() * -1 * drivebase.getSpeedScale(),
+                                () -> driverXbox.getLeftX() * -1 * drivebase.getSpeedScale())
                         .withControllerRotationAxis(() -> driverXbox.getRightX())
                         .deadband(OperatorConstants.DEADBAND)
                         .scaleTranslation(0.8)
@@ -208,6 +208,7 @@ public class RobotContainer {
 
         driverXbox.a().onTrue((Commands.runOnce(drivebase::zeroGyro)));
         driverXbox.x().onTrue(Commands.runOnce(drivebase::addFakeVisionReading));
+        driverXbox.b().onTrue(arm.setEncoderToDeployPosition());
         driverXbox.y().onTrue(hopper.in(0.0));
 
         // operatorXbox.povDown().whileTrue(arm.goToWristAngleCommand(WristAngle.DEPLOY));
@@ -281,9 +282,12 @@ public class RobotContainer {
         operatorXbox
                 .b()
                 .whileTrue(
-                        intake.in(-1.0) // .alongWith(arm.goToWristAngleCommand(WristAngle.DEPLOY))
-                        // .whileFalse(intake.in(0.0)
-                        );
+                        intake.in(-1.0)
+                                .alongWith(Commands.runOnce(() -> drivebase.setSpeedScale(0.5))))
+                .whileFalse(Commands.runOnce(() -> drivebase.setSpeedScale(1.0)));
+        // .alongWith(arm.goToWristAngleCommand(WristAngle.DEPLOY))
+        // .whileFalse(intake.in(0.0)
+
     }
 
     private static final Pose2d RIGHT_AUTO_START_POSE =
@@ -485,8 +489,15 @@ public class RobotContainer {
                                         indexer.in(0.8)
                                                 .alongWith(shooter.spinToRPM(3000))
                                                 .alongWith(hopper.in(0.4)))
-                                .withTimeout(7));
-
+                                .withTimeout(4),
+                        Commands.run(() -> arm.manualControl(0.25)).withTimeout(1),
+                        shooter.spinToRPM(3000)
+                                .until(() -> shooter.atSpeed(3000, 100))
+                                .andThen(
+                                        indexer.in(0.8)
+                                                .alongWith(shooter.spinToRPM(3000))
+                                                .alongWith(hopper.in(0.4)))
+                                .withTimeout(4));
         // hopper.in(0.4),
         // shooter.spinToRPM(3000) // spin up
         //         .until(() -> shooter.atSpeed(3000, 100))
