@@ -90,29 +90,13 @@ public class HopperSubsystem extends SubsystemBase {
                 });
     }
 
-    // public Command out(double speed) {
-    //     return setHopperSpeed(speed * -1);
-    // }
 
     public Command in(double speed) {
         return setHopperSpeed(speed);
     }
 
-    // public Command stop() {
-    //     return setHopperSpeed(0);
-    // }
-
     public Current getCurrent() {
         return Amps.of(m_rollerMotor.getOutputCurrent());
     }
 
-    // public boolean outtaking() {
-    //     if (getCurrentCommand() != null)
-    //         return getDutycycle() < 0.0 || getCurrentCommand().getName().equals("Outtake");
-    //     return getDutycycle() < 0.0;
-    // }
-
-    // public double getDutycycle() {
-    //     return m_rollerMotor.getAppliedOutput();
-    // }
 }

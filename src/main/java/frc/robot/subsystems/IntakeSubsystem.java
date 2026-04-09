@@ -90,29 +90,15 @@ public class IntakeSubsystem extends SubsystemBase {
                 });
     }
 
-    // public Command out(double speed) {
-    //     return setIntakeRoller(speed * -1);
-    // }
+    
 
     public Command in(double speed) {
         return run(() -> m_rollerMotor.set(speed)).finallyDo(() -> m_rollerMotor.set(0));
     }
 
-    // public Command stop() {
-    //     return setIntakeRoller(0);
-    // }
 
     public Current getCurrent() {
         return Amps.of(m_rollerMotor.getOutputCurrent());
     }
 
-    // public boolean outtaking() {
-    //     if (getCurrentCommand() != null)
-    //         return getDutycycle() < 0.0 || getCurrentCommand().getName().equals("Outtake");
-    //     return getDutycycle() < 0.0;
-    // }
-
-    // public double getDutycycle() {
-    //     return m_rollerMotor.getAppliedOutput();
-    // }
 }

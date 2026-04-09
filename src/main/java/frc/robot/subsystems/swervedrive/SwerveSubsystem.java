@@ -301,7 +301,7 @@ public class SwerveSubsystem extends SubsystemBase {
         PathConstraints constraints =
                 new PathConstraints(
                         swerveDrive.getMaximumChassisVelocity(),
-                        1.0,
+                        2.0,
                         swerveDrive.getMaximumChassisAngularVelocity(),
                         Units.degreesToRadians(720));
 
@@ -313,12 +313,12 @@ public class SwerveSubsystem extends SubsystemBase {
                 );
     }
 
-    public Command driveToPoseDeferredWithFlip(Pose2d pose) {
+    public Command driveToPoseDeferredWithFlip(Pose2d pose, double goalEndVelocity) {
 
         // Create the constraints to use while pathfinding
         PathConstraints constraints =
                 new PathConstraints(
-                        swerveDrive.getMaximumChassisVelocity() / 4,
+                        swerveDrive.getMaximumChassisVelocity() / 2,
                         1.0,
                         swerveDrive.getMaximumChassisAngularVelocity(),
                         Units.degreesToRadians(720));
@@ -327,7 +327,7 @@ public class SwerveSubsystem extends SubsystemBase {
                 () -> {
                     boolean red = isRedAlliance();
                     final Pose2d targetPose = red ? FlippingUtil.flipFieldPose(pose) : pose;
-                    return AutoBuilder.pathfindToPose(targetPose, constraints, 0);
+                    return AutoBuilder.pathfindToPose(targetPose, constraints, goalEndVelocity);
                 },
                 Set.of(this));
     }

@@ -83,12 +83,6 @@ public class IndexerSubsystem extends SubsystemBase {
                 0.02);
     }
 
-    // public Command setIndexerSpeed(double speed) {
-    //     return runOnce(
-    //             () -> {
-    //                 m_rollerMotor.set(speed);
-    //             });
-    // }
     public Command setIndexerSpeed(double speed) {
         return runEnd(
                 () -> {
@@ -99,29 +93,14 @@ public class IndexerSubsystem extends SubsystemBase {
                 });
     }
 
-    // public Command out(double speed) {
-    //     return setIndexerSpeed(speed * 1);
-    // }
 
     public Command in(double speed) {
         return setIndexerSpeed(speed);
     }
 
-    // public Command stop() {
-    //     return setIndexerSpeed(0);
-    // }
 
     public Current getCurrent() {
         return Amps.of(m_rollerMotor.getOutputCurrent());
     }
 
-    // public boolean outtaking() {
-    //     if (getCurrentCommand() != null)
-    //         return getDutycycle() < 0.0 || getCurrentCommand().getName().equals("Outtake");
-    //     return getDutycycle() < 0.0;
-    // }
-
-    // public double getDutycycle() {
-    //     return m_rollerMotor.getAppliedOutput();
-    // }
 }

@@ -140,24 +140,6 @@ public class ShooterSubsystem extends SubsystemBase {
         return spinToRPM(3800);
     }
 
-    // public Command setShooterSpeed(double speed) {
-    //     return startEnd(
-    //             () -> {
-    //                 System.out.println("Speed = " + speed);
-    //                 m_rightRollerMotor.set(speed);
-    //             },
-    //             () -> {
-    //                 m_rightRollerMotor.set(0);
-    //             });
-    // }
-
-    // public Command out(double speed) {
-    //     return setShooterSpeed(speed * -1);
-    // }
-
-    // public Command in(double speed) {
-    //     return setShooterSpeed(speed);
-    // }
 
     public void stopShooter() {
         targetRPM = 0;
@@ -168,13 +150,4 @@ public class ShooterSubsystem extends SubsystemBase {
         return Amps.of(m_leftRollerMotor.getOutputCurrent());
     }
 
-    // public boolean outtaking() {
-    //     if (getCurrentCommand() != null)
-    //         return getDutycycle() < 0.0 || getCurrentCommand().getName().equals("Outtake");
-    //     return getDutycycle() < 0.0;
-    // }
-
-    // public double getDutycycle() {
-    //     return m_leftRollerMotor.getAppliedOutput();
-    // }
 }
