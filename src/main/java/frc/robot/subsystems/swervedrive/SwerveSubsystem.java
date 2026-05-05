@@ -66,8 +66,26 @@ public class SwerveSubsystem extends SubsystemBase {
     /** Enable vision odometry updates while driving. */
     private final boolean visionDriveTest = false;
 
-    /** Limlight class to keep an accurate odometry. LL4 IP--> http://10.82.43.15:5800 */
-    private Vision vision = new Vision("");
+    // Limelight names — these must match the hostname suffix configured in the LL web UI.
+    // LL4 (AprilTags / pose):    hostname "limelight-tag"     -> name "tag"
+    // LL3 (object detection):    hostname "limelight-detect"  -> name "detect"
+    public static final String LL4_TAG_NAME = "tag";
+    public static final String LL3_DETECT_NAME = "detect";
+
+    /** LL4 — AprilTag pose estimator. Update camera offsets to match how it's mounted. */
+    private final Vision tagCamera =
+            new Vision(
+                    LL4_TAG_NAME,
+                    new Vision.CameraOffset(
+                            Units.inchesToMeters(2.0), // forward from robot center
+                            Units.inchesToMeters(2.0), // left from robot center
+                            Units.inchesToMeters(20.0), // up from floor
+                            0.0, // roll
+                            0.0, // pitch (+ = tilted back)
+                            0.0)); // yaw  (+ = rotated left)
+
+    /** LL3 — object detection (game pieces). No pose contribution. */
+    private final Detector pieceDetector = new Detector(LL3_DETECT_NAME);
 
     /**
      * Initialize {@link SwerveDrive} with the directory provided.
@@ -149,10 +167,16 @@ public class SwerveSubsystem extends SubsystemBase {
         // When vision is enabled we must manually update odometry in SwerveDrive
         if (visionDriveTest) {
             swerveDrive.updateOdometry();
-            vision.updatePose(swerveDrive);
+            tagCamera.updatePose(swerveDrive);
         } else {
             swerveDrive.updateOdometry();
         }
+        pieceDetector.log();
+    }
+
+    /** Object-detection (LL3) accessor for commands that align to game pieces. */
+    public Detector getPieceDetector() {
+        return pieceDetector;
     }
 
     @Override
@@ -253,26 +277,17 @@ public class SwerveSubsystem extends SubsystemBase {
                 });
     }
 
+    /** Yaws the robot to center the LL3 object detector on its current target. */
     public Command aimAtTarget() {
         return run(
                 () -> {
-                    // do we have a target
-                    if (!LimelightHelpers.getTV("limelight-main")) {
-                        // no target- do nothing
+                    if (!pieceDetector.hasTarget()) {
                         drive(new ChassisSpeeds(0, 0, 0));
                         return;
                     }
-                    // horizontal error to target
-                    double tx = LimelightHelpers.getTX("limelight-main"); // degrees
-
-                    // proportinal control (tune this)
-                    double kp = 0.035;
-                    double rotationspeed = -kp * tx;
-
-                    // clamp rotation
-                    rotationspeed = MathUtil.clamp(rotationspeed, -1.5, 1.5);
-
-                    // Rotate to reduce tx error
+                    double tx = pieceDetector.getTX(); // degrees
+                    double kp = 0.035; // tune
+                    double rotationspeed = MathUtil.clamp(-kp * tx, -1.5, 1.5);
                     drive(new ChassisSpeeds(0, 0, rotationspeed));
                 });
     }

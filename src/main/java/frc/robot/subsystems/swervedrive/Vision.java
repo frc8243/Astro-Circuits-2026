@@ -2,37 +2,66 @@ package frc.robot.subsystems.swervedrive;
 
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import swervelib.SwerveDrive;
 
+/**
+ * AprilTag pose-estimation wrapper around a single Limelight (intended for LL4).
+ *
+ * <p>Pass the same name configured on the Limelight web UI (Settings -> Hostname). For example, a
+ * Limelight whose hostname is {@code limelight-tag} should be constructed with name {@code "tag"}.
+ */
 public class Vision {
+
+    /** Camera mounting offsets, all measured from robot center. */
+    public static class CameraOffset {
+        public final double forwardMeters;
+        public final double leftMeters;
+        public final double upMeters;
+        public final double rollDeg;
+        public final double pitchDeg;
+        public final double yawDeg;
+
+        public CameraOffset(
+                double forwardMeters,
+                double leftMeters,
+                double upMeters,
+                double rollDeg,
+                double pitchDeg,
+                double yawDeg) {
+            this.forwardMeters = forwardMeters;
+            this.leftMeters = leftMeters;
+            this.upMeters = upMeters;
+            this.rollDeg = rollDeg;
+            this.pitchDeg = pitchDeg;
+            this.yawDeg = yawDeg;
+        }
+    }
 
     private final String limelightName;
     private final String limelightHostname;
     private final StructPublisher<Pose2d> posePublisher;
 
-    public Vision(String limelightName) {
+    public Vision(String limelightName, CameraOffset offset) {
         this.limelightName = limelightName;
         this.limelightHostname =
                 "limelight" + (!limelightName.isEmpty() ? "-" + limelightName : "");
 
-        // set camera position on robot - measure these values!
         LimelightHelpers.setCameraPose_RobotSpace(
                 limelightName,
-                Units.inchesToMeters(2.0), // forward from robot center (meters, + = forward)
-                Units.inchesToMeters(2.0), // left from robot center (meters, + = left)
-                Units.inchesToMeters(20.0), // up from floor (meters)
-                0.0, // roll (degrees)
-                0.0, // pitch (degrees, + = tilted back)
-                0.0); // yaw (degrees, + = rotated left)
+                offset.forwardMeters,
+                offset.leftMeters,
+                offset.upMeters,
+                offset.rollDeg,
+                offset.pitchDeg,
+                offset.yawDeg);
 
         posePublisher =
                 NetworkTableInstance.getDefault()
-                        .getStructTopic("VisionPoseEstimator/" + limelightName, Pose2d.struct)
+                        .getStructTopic("VisionPoseEstimator/" + limelightHostname, Pose2d.struct)
                         .publish();
         posePublisher.setDefault(new Pose2d());
     }
@@ -68,7 +97,7 @@ public class Vision {
                 tagIDs.append(est.rawFiducials[i].id);
             }
         }
-        SmartDashboard.putString("Vision/TagIDs", tagIDs.toString());
+        SmartDashboard.putString("Vision/" + limelightHostname + "/TagIDs", tagIDs.toString());
         // use Limelight's own stddevs instead of hardcoded values
         // layout: [MT1x, MT1y, MT1z, MT1roll, MT1pitch, MT1yaw, MT2x, MT2y, MT2z, MT2roll,
         // MT2pitch, MT2yaw]
