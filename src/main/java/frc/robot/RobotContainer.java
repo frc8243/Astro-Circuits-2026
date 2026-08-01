@@ -225,7 +225,6 @@ public class RobotContainer {
         //                             return Math.atan2(x, y);
         //                         }));
 
-
         operatorXbox
                 .a()
                 .whileTrue(
@@ -262,8 +261,8 @@ public class RobotContainer {
                         intake.in(-1.0)
                                 .alongWith(Commands.runOnce(() -> drivebase.setSpeedScale(0.35))))
                 .whileFalse(Commands.runOnce(() -> drivebase.setSpeedScale(1.0)));
-
     }
+
     private static final Pose2d RIGHT_AUTO_START_POSE =
             new Pose2d(4, 0.7, Rotation2d.fromDegrees(0));
     private static final Pose2d MIDDLE_AUTO_START_POSE =
@@ -280,7 +279,6 @@ public class RobotContainer {
     private static final Pose2d MIDDLE_SHOOT_POSE = new Pose2d(2.5, 4, Rotation2d.fromDegrees(0));
     private static final Pose2d OUTPOST_ZONE_POSE2D =
             new Pose2d(0.816, 0.716, Rotation2d.fromDegrees(180));
-    
 
     private void setupAuton() {
         autoChooser = new SendableChooser<>();
@@ -310,7 +308,6 @@ public class RobotContainer {
                                                 .alongWith(shooter.spinToRPM(3500))
                                                 .alongWith(hopper.in(0.4)))
                                 .withTimeout(8));
-       
 
         Command middleshoot =
                 Commands.sequence(
@@ -325,7 +322,6 @@ public class RobotContainer {
                                                 .alongWith(hopper.in(0.4)))
                                 .withTimeout(8));
 
-        
         Command middleshootOUTPOST =
                 Commands.sequence(
                         Commands.runOnce(
@@ -354,7 +350,6 @@ public class RobotContainer {
                                 .alongWith(Commands.run(() -> arm.manualControl(-0.3)))
                                 .withTimeout(5));
 
-       
         Command middleshootdepotsideways =
                 Commands.sequence(
                         // Reset pose
@@ -394,7 +389,7 @@ public class RobotContainer {
                                                         Commands.run(
                                                                 () -> arm.manualControl(-0.3))))
                                 .withTimeout(8));
-       
+
         // autoChooser.addOption("drivestraight", driveStraight);
 
         autoChooser.addOption("Depotjustshoot", DepotjustShoot);
