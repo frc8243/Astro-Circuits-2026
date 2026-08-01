@@ -90,7 +90,6 @@ public class HopperSubsystem extends SubsystemBase {
                 });
     }
 
-
     public Command in(double speed) {
         return setHopperSpeed(speed);
     }
@@ -98,5 +97,4 @@ public class HopperSubsystem extends SubsystemBase {
     public Current getCurrent() {
         return Amps.of(m_rollerMotor.getOutputCurrent());
     }
-
 }

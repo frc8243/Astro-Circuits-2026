@@ -140,7 +140,6 @@ public class ShooterSubsystem extends SubsystemBase {
         return spinToRPM(3800);
     }
 
-
     public void stopShooter() {
         targetRPM = 0;
         m_rightRollerMotor.set(0.0); // Bypasses controller
@@ -149,5 +148,4 @@ public class ShooterSubsystem extends SubsystemBase {
     public Current getCurrent() {
         return Amps.of(m_leftRollerMotor.getOutputCurrent());
     }
-
 }

@@ -1,11 +1,11 @@
 {
   "location": {
-    "front": -11.15625,
-    "left": -11.15625
+    "front": -13,
+    "left": -13
   },
   "absoluteEncoderOffset": 90,
   "drive": {
-    "type": "sparkmax_neo",
+    "type": "sparkmax_vortex",
     "id": 41,
     "canbus": null
   },

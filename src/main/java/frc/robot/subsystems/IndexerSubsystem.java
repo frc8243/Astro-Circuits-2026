@@ -93,14 +93,11 @@ public class IndexerSubsystem extends SubsystemBase {
                 });
     }
 
-
     public Command in(double speed) {
         return setIndexerSpeed(speed);
     }
 
-
     public Current getCurrent() {
         return Amps.of(m_rollerMotor.getOutputCurrent());
     }
-
 }

@@ -90,15 +90,11 @@ public class IntakeSubsystem extends SubsystemBase {
                 });
     }
 
-    
-
     public Command in(double speed) {
         return run(() -> m_rollerMotor.set(speed)).finallyDo(() -> m_rollerMotor.set(0));
     }
 
-
     public Current getCurrent() {
         return Amps.of(m_rollerMotor.getOutputCurrent());
     }
-
 }
