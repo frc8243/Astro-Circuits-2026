@@ -87,6 +87,11 @@ public class ArmSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("ArmWrist/Encoder Position", wristEncoder.getPosition());
         SmartDashboard.putNumber("Arm/Angle", angleEnum.getAngle());
         SmartDashboard.putString("Arm/State", "" + angleEnum);
+
+        SmartDashboard.putNumber("Arm/current", armWristMotor.getOutputCurrent());
+        SmartDashboard.putNumber("Arm/appliedOutput", armWristMotor.getAppliedOutput());
+        SmartDashboard.putNumber("Arm/velocityRadPerSec", wristEncoder.getVelocity());
+        SmartDashboard.putNumber("Arm/errorRad", angleEnum.getAngle() - wristEncoder.getPosition());
     }
 
     private void goToWristAngle(double angle) {
@@ -102,6 +107,16 @@ public class ArmSubsystem extends SubsystemBase {
                     this.angleEnum = angleEnum;
                     System.out.println("Move Wrist to " + angleEnum.toString());
                 });
+    }
+
+    /** Drives the wrist to the given angle and holds it there until interrupted. */
+    public Command holdWristAngleCommand(WristAngle target) {
+        return this.run(() -> goToWristAngle(target.getAngle()))
+                .beforeStarting(
+                        () -> {
+                            this.angleEnum = target;
+                            System.out.println("Move Wrist to " + target);
+                        });
     }
 
     public void stop() {

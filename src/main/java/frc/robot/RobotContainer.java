@@ -206,7 +206,7 @@ public class RobotContainer {
         }
 
         driverXbox.a().onTrue((Commands.runOnce(drivebase::zeroGyro)));
-        driverXbox.x().onTrue(Commands.runOnce(drivebase::addFakeVisionReading));
+        //  driverXbox.x().onTrue(Commands.runOnce(drivebase::addFakeVisionReading));
         driverXbox.b().onTrue(arm.setEncoderToDeployPosition());
         driverXbox.y().onTrue(hopper.in(0.0));
 
@@ -255,6 +255,13 @@ public class RobotContainer {
         //         .whileTrue(
         //                 arm.oscillateCommand(WristAngle.DEPLOY, WristAngle.SHAKE, 0.8) // 1.0
         //                         .alongWith(intake.in(-0.5)));
+
+        // Press once to send the wrist to a position; it holds there until the operator
+        // moves the left stick or presses the other position button.
+        operatorXbox.y().onTrue(arm.holdWristAngleCommand(WristAngle.DEPLOY));
+        operatorXbox.leftBumper().onTrue(arm.holdWristAngleCommand(WristAngle.STOW));
+        new Trigger(() -> Math.abs(operatorXbox.getLeftY()) > OIConstants.kDriveDeadband)
+                .onTrue(Commands.runOnce(() -> {}, arm));
         operatorXbox
                 .b()
                 .whileTrue(

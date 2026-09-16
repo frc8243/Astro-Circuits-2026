@@ -29,6 +29,8 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -64,10 +66,16 @@ public class SwerveSubsystem extends SubsystemBase {
     private final SwerveDrive swerveDrive;
 
     /** Enable vision odometry updates while driving. */
-    private final boolean visionDriveTest = false;
+    private final boolean visionDriveTest = true;
 
-    /** Limlight class to keep an accurate odometry. LL4 IP--> http://10.82.43.15:5800 */
-    private Vision vision = new Vision("");
+    /** Limelight class to keep an accurate odometry. LL4 IP--> http://10.82.43.15:5800 */
+    private Vision vision = new Vision("limelight-main");
+
+    // field -- a=same NT Imports Vision.java has
+    private final StructPublisher<Pose2d> fusedPosePublisher =
+            NetworkTableInstance.getDefault()
+                    .getStructTopic("VisionPoseEstimator/fused", Pose2d.struct)
+                    .publish();
 
     /**
      * Initialize {@link SwerveDrive} with the directory provided.
@@ -153,6 +161,8 @@ public class SwerveSubsystem extends SubsystemBase {
         } else {
             swerveDrive.updateOdometry();
         }
+
+        fusedPosePublisher.set(swerveDrive.getPose());
     }
 
     @Override
@@ -265,7 +275,7 @@ public class SwerveSubsystem extends SubsystemBase {
                     // horizontal error to target
                     double tx = LimelightHelpers.getTX("limelight-main"); // degrees
 
-                    // proportinal control (tune this)
+                    // proportional control (tune this)
                     double kp = 0.035;
                     double rotationspeed = -kp * tx;
 
@@ -556,9 +566,9 @@ public class SwerveSubsystem extends SubsystemBase {
      * robot-relative modes, which affect how the translation vector is used.
      *
      * @param translation {@link Translation2d} that is the commanded linear velocity of the robot,
-     *     in meters per second. In robot-relative mode, positive x is torwards the bow (front) and
-     *     positive y is torwards port (left). In field-relative mode, positive x is away from the
-     *     alliance wall (field North) and positive y is torwards the left wall when looking through
+     *     in meters per second. In robot-relative mode, positive x is towards the bow (front) and
+     *     positive y is towards port (left). In field-relative mode, positive x is away from the
+     *     alliance wall (field North) and positive y is towards the left wall when looking through
      *     the driver station glass (field West).
      * @param rotation Robot angular rate, in radians per second. CCW positive. Unaffected by
      *     field/robot relativity.
@@ -702,7 +712,7 @@ public class SwerveSubsystem extends SubsystemBase {
     /**
      * This will zero (calibrate) the robot to assume the current position is facing forward
      *
-     * <p>If red alliance rotate the robot 180 after the drviebase zero command
+     * <p>If red alliance rotate the robot 180 after the drivebase zero command
      */
     public void zeroGyroWithAlliance() {
         if (isRedAlliance()) {

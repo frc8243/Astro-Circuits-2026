@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "wpilog-analyzer": {
+      "command": "C:\\Users\\Public\\wpilib\\2026\\jdk\\bin\\java.exe",
+      "args": [
+        "-Xmx4g",
+        "-jar",
+        "C:\\Users\\Public\\wpilib\\2026\\vscode\\data\\extensions\\triplehelixprogramming.wpilog-analyzer-0.8.2\\server\\wpilog-mcp-all.jar",
+        "-logdir",
+        "C:\\Users\\jmhsr\\riologs",
+        "-team",
+        "2363"
+      ],
+      "env": {
+        "WPILOG_DIR": "C:\\Users\\jmhsr\\riologs",
+        "WPILOG_TEAM": "2363"
+      }
+    }
+  }
+}
