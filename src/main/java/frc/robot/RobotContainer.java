@@ -70,7 +70,7 @@ public class RobotContainer {
                                 drivebase.getSwerveDrive(),
                                 () -> driverXbox.getLeftY() * -1 * drivebase.getSpeedScale(),
                                 () -> driverXbox.getLeftX() * -1 * drivebase.getSpeedScale())
-                        .withControllerRotationAxis(() -> driverXbox.getRightX())
+                        .withControllerRotationAxis(() -> driverXbox.getRightX() * -1)
                         .deadband(OperatorConstants.DEADBAND)
                         .scaleTranslation(0.8)
                         .allianceRelativeControl(true);
@@ -97,7 +97,7 @@ public class RobotContainer {
                                 drivebase.getSwerveDrive(),
                                 () -> -driverXbox.getLeftY(),
                                 () -> -driverXbox.getLeftX())
-                        .withControllerRotationAxis(() -> driverXbox.getRawAxis(2))
+                        .withControllerRotationAxis(() -> driverXbox.getRawAxis(2) * -1)
                         .deadband(OperatorConstants.DEADBAND)
                         .scaleTranslation(0.8)
                         .allianceRelativeControl(true);
@@ -206,44 +206,40 @@ public class RobotContainer {
         }
 
         driverXbox.a().onTrue((Commands.runOnce(drivebase::zeroGyro)));
-        //  driverXbox.x().onTrue(Commands.runOnce(drivebase::addFakeVisionReading));
+        // driverXbox.x().onTrue(Commands.runOnce(drivebase::addFakeVisionReading));
         driverXbox.b().onTrue(arm.setEncoderToDeployPosition());
         driverXbox.y().onTrue(hopper.in(0.0));
 
         // driverXbox
-        //         .b()
-        //         .whileTrue(
-        //                 drivebase.snakeDriveCommand(
-        //                         () -> -driverXbox.getLeftY(),
-        //                         () -> -driverXbox.getLeftX(),
-        //                         () -> {
-        //                             double x = -driverXbox.getLeftX();
-        //                             double y = -driverXbox.getLeftY();
-        //                             if (Math.abs(x) < 0.1 && Math.abs(y) < 0.1) {
-        //                                 return drivebase.getHeading().getRadians();
-        //                             }
-        //                             return Math.atan2(x, y);
-        //                         }));
+        // .b()
+        // .whileTrue(
+        // drivebase.snakeDriveCommand(
+        // () -> -driverXbox.getLeftY(),
+        // () -> -driverXbox.getLeftX(),
+        // () -> {
+        // double x = -driverXbox.getLeftX();
+        // double y = -driverXbox.getLeftY();
+        // if (Math.abs(x) < 0.1 && Math.abs(y) < 0.1) {
+        // return drivebase.getHeading().getRadians();
+        // }
+        // return Math.atan2(x, y);
+        // }));
 
         operatorXbox
                 .a()
                 .whileTrue(
-                        shooter.spinToRPM(3400) // spin up 3850
-                                .until(() -> shooter.atSpeed(3400, 100))
-                                .andThen(
-                                        indexer.in(0.8)
-                                                .alongWith(shooter.spinToRPM(3400))
-                                                .alongWith(hopper.in(0.4))));
+                        Commands.deadline(
+                                Commands.waitUntil(() -> shooter.atSpeed(3400, 100))
+                                        .andThen(indexer.in(0.8).alongWith(hopper.in(0.4))),
+                                shooter.spinToRPM(3400)));
 
         operatorXbox
                 .x()
                 .whileTrue(
-                        shooter.spinToRPM(3100) // spin up
-                                .until(() -> shooter.atSpeed(3100, 100))
-                                .andThen(
-                                        indexer.in(0.8)
-                                                .alongWith(shooter.spinToRPM(3100))
-                                                .alongWith(hopper.in(0.4))));
+                        Commands.deadline(
+                                Commands.waitUntil(() -> shooter.atSpeed(3100, 100))
+                                        .andThen(indexer.in(0.8).alongWith(hopper.in(0.4))),
+                                shooter.spinToRPM(3100)));
         driverXbox
                 .rightBumper()
                 .whileTrue(
@@ -251,10 +247,10 @@ public class RobotContainer {
                                 () -> -driverXbox.getLeftY(), () -> -driverXbox.getLeftX()));
 
         // operatorXbox
-        //         .y()
-        //         .whileTrue(
-        //                 arm.oscillateCommand(WristAngle.DEPLOY, WristAngle.SHAKE, 0.8) // 1.0
-        //                         .alongWith(intake.in(-0.5)));
+        // .y()
+        // .whileTrue(
+        // arm.oscillateCommand(WristAngle.DEPLOY, WristAngle.SHAKE, 0.8) // 1.0
+        // .alongWith(intake.in(-0.5)));
 
         // Press once to send the wrist to a position; it holds there until the operator
         // moves the left stick or presses the other position button.
@@ -295,26 +291,20 @@ public class RobotContainer {
                         Commands.runOnce(
                                 () -> drivebase.resetOdometryDeferredFlip(LEFT_AUTO_START_POSE)),
                         drivebase.driveToPoseDeferredWithFlip(DEPOT_TRENCH_SHOOT_POSE, 0),
-                        shooter.spinToRPM(3500)
-                                .until(() -> shooter.atSpeed(3500, 100))
-                                .andThen(
-                                        indexer.in(0.8)
-                                                .alongWith(shooter.spinToRPM(3500))
-                                                .alongWith(hopper.in(0.4)))
-                                .withTimeout(8));
+                        Commands.deadline(
+                                Commands.waitUntil(() -> shooter.atSpeed(3500, 100))
+                                        .andThen(indexer.in(0.8).alongWith(hopper.in(0.4))),
+                                shooter.spinToRPM(3100)));
 
         Command OutpostJustShoot =
                 Commands.sequence(
                         Commands.runOnce(
                                 () -> drivebase.resetOdometryDeferredFlip(RIGHT_AUTO_START_POSE)),
                         drivebase.driveToPoseDeferredWithFlip(OUTPOST_TRENCH_SHOOT_POSE, 0),
-                        shooter.spinToRPM(3500)
-                                .until(() -> shooter.atSpeed(3500, 100))
-                                .andThen(
-                                        indexer.in(0.8)
-                                                .alongWith(shooter.spinToRPM(3500))
-                                                .alongWith(hopper.in(0.4)))
-                                .withTimeout(8));
+                        Commands.deadline(
+                                Commands.waitUntil(() -> shooter.atSpeed(3500, 100))
+                                        .andThen(indexer.in(0.8).alongWith(hopper.in(0.4))),
+                                shooter.spinToRPM(3500)));
 
         Command middleshoot =
                 Commands.sequence(
@@ -334,13 +324,18 @@ public class RobotContainer {
                         Commands.runOnce(
                                 () -> drivebase.resetOdometryDeferredFlip(MIDDLE_AUTO_START_POSE)),
                         drivebase.driveToPoseDeferredWithFlip(MIDDLE_SHOOT_POSE, 0),
-                        shooter.spinToRPM(2900)
-                                .until(() -> shooter.atSpeed(2900, 100))
-                                .andThen(
-                                        indexer.in(0.8)
-                                                .alongWith(shooter.spinToRPM(2900))
-                                                .alongWith(hopper.in(0.4)))
-                                .withTimeout(3),
+                        Commands.deadline(
+                                Commands.waitUntil(() -> shooter.atSpeed(2900, 100))
+                                        .andThen(
+                                                indexer.in(0.8)
+                                                        .alongWith(hopper.in(0.4))
+                                                        .alongWith(
+                                                                Commands.run(
+                                                                        () ->
+                                                                                arm.manualControl(
+                                                                                        -0.3))))
+                                        .withTimeout(3),
+                                shooter.spinToRPM(2900)),
                         drivebase
                                 .driveToPoseDeferredWithFlip(OUTPOST_ZONE_POSE2D, 0)
                                 .deadlineWith(
@@ -348,14 +343,18 @@ public class RobotContainer {
                                         intake.in(-1)),
                         Commands.waitSeconds(1).deadlineWith(intake.in(-1)),
                         drivebase.driveToPoseDeferredWithFlip(MIDDLE_SHOOT_POSE, 0),
-                        shooter.spinToRPM(2900)
-                                .until(() -> shooter.atSpeed(2900, 100))
-                                .andThen(
-                                        indexer.in(0.8)
-                                                .alongWith(shooter.spinToRPM(2900))
-                                                .alongWith(hopper.in(0.4)))
-                                .alongWith(Commands.run(() -> arm.manualControl(-0.3)))
-                                .withTimeout(5));
+                        Commands.deadline(
+                                Commands.waitUntil(() -> shooter.atSpeed(2900, 100))
+                                        .andThen(
+                                                indexer.in(0.8)
+                                                        .alongWith(hopper.in(0.4))
+                                                        .alongWith(
+                                                                Commands.run(
+                                                                        () ->
+                                                                                arm.manualControl(
+                                                                                        -0.3))))
+                                        .withTimeout(5),
+                                shooter.spinToRPM(2900)));
 
         Command middleshootdepotsideways =
                 Commands.sequence(
@@ -363,13 +362,18 @@ public class RobotContainer {
                         Commands.runOnce(
                                 () -> drivebase.resetOdometryDeferredFlip(MIDDLE_AUTO_START_POSE)),
                         drivebase.driveToPoseDeferredWithFlip(MIDDLE_SHOOT_POSE, 0.0),
-                        shooter.spinToRPM(2900)
-                                .until(() -> shooter.atSpeed(2900, 100))
-                                .andThen(
-                                        indexer.in(0.8)
-                                                .alongWith(shooter.spinToRPM(2900))
-                                                .alongWith(hopper.in(0.4)))
-                                .withTimeout(3),
+                        Commands.deadline(
+                                Commands.waitUntil(() -> shooter.atSpeed(2900, 100))
+                                        .andThen(
+                                                indexer.in(0.8)
+                                                        .alongWith(hopper.in(0.4))
+                                                        .alongWith(
+                                                                Commands.run(
+                                                                        () ->
+                                                                                arm.manualControl(
+                                                                                        -0.3))))
+                                        .withTimeout(3),
+                                shooter.spinToRPM(2900)),
                         // Drive to depot with arm deploying after clearing hub, intake running
                         // whole time
                         drivebase
@@ -386,16 +390,19 @@ public class RobotContainer {
                         // Drive back to shoot
                         drivebase.driveToPoseDeferredWithFlip(MIDDLE_SHOOT_POSE, 0),
                         // spin up shooter and stow arm at the same time
-                        shooter.spinToRPM(2900)
-                                .until(() -> shooter.atSpeed(2900, 100))
-                                .andThen(
-                                        indexer.in(0.8)
-                                                .alongWith(shooter.spinToRPM(2900))
-                                                .alongWith(hopper.in(0.4))
-                                                .alongWith(
-                                                        Commands.run(
-                                                                () -> arm.manualControl(-0.3))))
-                                .withTimeout(8));
+
+                        Commands.deadline(
+                                Commands.waitUntil(() -> shooter.atSpeed(2900, 100))
+                                        .andThen(
+                                                indexer.in(0.8)
+                                                        .alongWith(hopper.in(0.4))
+                                                        .alongWith(
+                                                                Commands.run(
+                                                                        () ->
+                                                                                arm.manualControl(
+                                                                                        -0.3))))
+                                        .withTimeout(8),
+                                shooter.spinToRPM(2900)));
 
         // autoChooser.addOption("drivestraight", driveStraight);
 

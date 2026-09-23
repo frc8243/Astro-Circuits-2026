@@ -5,7 +5,6 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import swervelib.SwerveDrive;
 
@@ -68,13 +67,14 @@ public class Vision {
             return;
         }
         if (est.tagCount < 1) {
-            SmartDashboard.putNumber("Vision/tagCount", est.tagCount);
-            SmartDashboard.putNumber("Vision/avgTagDist", est.avgTagDist);
-           // SmartDashboard.putNumber("Vision/latencySec",
-           // Timer.getFPGATimestamp() - est.timestampSeconds);
             reject("no tag");
             return;
         }
+        SmartDashboard.putNumber("Vision/tagCount", est.tagCount);
+        SmartDashboard.putNumber("Vision/avgTagDist", est.avgTagDist);
+        // SmartDashboard.putNumber("Vision/latencySec",
+        // Timer.getFPGATimestamp() - est.timestampSeconds);
+
         if (est.pose.getX() == 0 && est.pose.getY() == 0) {
             reject("x and y are 0");
             return;

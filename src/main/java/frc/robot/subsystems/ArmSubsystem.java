@@ -39,7 +39,8 @@ public class ArmSubsystem extends SubsystemBase {
         sparkMaxConfigWrist
                 .inverted(false)
                 .idleMode(wristIdleMode)
-                .smartCurrentLimit(40)
+                // .smartCurrentLimit(40)
+                .smartCurrentLimit(20)
                 .softLimit
                 .forwardSoftLimit(Units.degreesToRadians(35))
                 .reverseSoftLimit(Units.degreesToRadians(-125))
