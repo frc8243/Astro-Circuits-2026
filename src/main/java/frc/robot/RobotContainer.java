@@ -282,6 +282,10 @@ public class RobotContainer {
     private static final Pose2d MIDDLE_SHOOT_POSE = new Pose2d(2.5, 4, Rotation2d.fromDegrees(0));
     private static final Pose2d OUTPOST_ZONE_POSE2D =
             new Pose2d(0.816, 0.716, Rotation2d.fromDegrees(180));
+    private static final Pose2d OUTPOST_TRENCH_FOWARD =
+            new Pose2d(8.2, 0.716, Rotation2d.fromDegrees(180));
+    private static final Pose2d OUTPOST_TRENCH_RUN =
+            new Pose2d(8.2, 7.5, Rotation2d.fromDegrees(180));
 
     private void setupAuton() {
         autoChooser = new SendableChooser<>();
@@ -300,6 +304,19 @@ public class RobotContainer {
                 Commands.sequence(
                         Commands.runOnce(
                                 () -> drivebase.resetOdometryDeferredFlip(RIGHT_AUTO_START_POSE)),
+                        drivebase.driveToPoseDeferredWithFlip(OUTPOST_TRENCH_SHOOT_POSE, 0),
+                        Commands.deadline(
+                                Commands.waitUntil(() -> shooter.atSpeed(3500, 100))
+                                        .andThen(indexer.in(0.8).alongWith(hopper.in(0.4))),
+                                shooter.spinToRPM(3500)));
+
+        Command OutpostTrenchback =
+                Commands.sequence(
+                        Commands.runOnce(
+                                () -> drivebase.resetOdometryDeferredFlip(RIGHT_AUTO_START_POSE)),
+                        drivebase.driveToPoseDeferredWithFlip(OUTPOST_TRENCH_FOWARD, 0),
+                        drivebase.driveToPoseDeferredWithFlip(OUTPOST_TRENCH_RUN, 0),
+                        drivebase.driveToPoseDeferredWithFlip(OUTPOST_TRENCH_FOWARD, 0),
                         drivebase.driveToPoseDeferredWithFlip(OUTPOST_TRENCH_SHOOT_POSE, 0),
                         Commands.deadline(
                                 Commands.waitUntil(() -> shooter.atSpeed(3500, 100))
