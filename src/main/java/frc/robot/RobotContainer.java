@@ -283,12 +283,32 @@ public class RobotContainer {
     private static final Pose2d OUTPOST_ZONE_POSE2D =
             new Pose2d(0.816, 0.716, Rotation2d.fromDegrees(180));
     private static final Pose2d OUTPOST_TRENCH_FOWARD =
-            new Pose2d(8.2, 0.716, Rotation2d.fromDegrees(180));
+            new Pose2d(7.8, 0.7, Rotation2d.fromDegrees(90));
+    private static final Pose2d DEPOT_TRENCH_FOWARD =
+            new Pose2d(7.5, 7.5, Rotation2d.fromDegrees(-90));
     private static final Pose2d OUTPOST_TRENCH_RUN =
-            new Pose2d(8.2, 7.5, Rotation2d.fromDegrees(180));
+            new Pose2d(7.8, 4.5, Rotation2d.fromDegrees(90));
+    private static final Pose2d DEPOT_TRENCH_RUN =
+            new Pose2d(8.2, 0.7, Rotation2d.fromDegrees(-90));
+    private static final Pose2d NEUTRAL_POSE =
+            new Pose2d(8.2, 4, Rotation2d.fromDegrees(-90));
 
     private void setupAuton() {
         autoChooser = new SendableChooser<>();
+
+        Command Line =
+                Commands.sequence(
+                        Commands.runOnce(
+                                () -> drivebase.resetOdometryDeferredFlip(LEFT_AUTO_START_POSE)),
+                        drivebase.driveToPoseDeferredWithFlip(DEPOT_TRENCH_FOWARD, 0)
+                                                        .deadlineWith(
+                                        arm.goToWristAngleCommand(WristAngle.DEPLOY),
+                                        intake.in(-1)),
+                        drivebase.driveToPoseDeferredWithFlip(NEUTRAL_POSE, 0),
+                        Commands.deadline(
+                                Commands.waitUntil(() -> shooter.atSpeed(3500, 100))
+                                        .andThen(indexer.in(0.8).alongWith(hopper.in(0.4))),
+                                shooter.spinToRPM(3100)));
 
         Command DepotjustShoot =
                 Commands.sequence(
@@ -310,13 +330,32 @@ public class RobotContainer {
                                         .andThen(indexer.in(0.8).alongWith(hopper.in(0.4))),
                                 shooter.spinToRPM(3500)));
 
-        Command OutpostTrenchback =
+        Command OutpostNeutralShoot =
                 Commands.sequence(
                         Commands.runOnce(
                                 () -> drivebase.resetOdometryDeferredFlip(RIGHT_AUTO_START_POSE)),
-                        drivebase.driveToPoseDeferredWithFlip(OUTPOST_TRENCH_FOWARD, 0),
-                        drivebase.driveToPoseDeferredWithFlip(OUTPOST_TRENCH_RUN, 0),
-                        drivebase.driveToPoseDeferredWithFlip(OUTPOST_TRENCH_FOWARD, 0),
+                                drivebase.driveToPoseDeferredWithFlip(OUTPOST_TRENCH_FOWARD, 0),
+                        drivebase.driveToPoseDeferredWithFlip(OUTPOST_TRENCH_RUN, 0)
+                         .deadlineWith(
+                                        arm.goToWristAngleCommand(WristAngle.DEPLOY),
+                                        intake.in(-1)),
+                         drivebase.driveToPoseDeferredWithFlip(OUTPOST_TRENCH_FOWARD, 0),
+                        drivebase.driveToPoseDeferredWithFlip(OUTPOST_TRENCH_SHOOT_POSE, 0),
+                        Commands.deadline(
+                                Commands.waitUntil(() -> shooter.atSpeed(3500, 100))
+                                        .andThen(indexer.in(0.8).alongWith(hopper.in(0.4))),
+                                shooter.spinToRPM(3500)));
+
+        Command DepotNeutralShoot =
+                Commands.sequence(
+                        Commands.runOnce(
+                                () -> drivebase.resetOdometryDeferredFlip(LEFT_AUTO_START_POSE)),
+                        drivebase
+                                .driveToPoseDeferredWithFlip(DEPOT_TRENCH_FOWARD, 0)
+                                .deadlineWith(
+                                        arm.goToWristAngleCommand(WristAngle.DEPLOY),
+                                        intake.in(-1)),
+                        drivebase.driveToPoseDeferredWithFlip(DEPOT_TRENCH_RUN, 0),
                         drivebase.driveToPoseDeferredWithFlip(OUTPOST_TRENCH_SHOOT_POSE, 0),
                         Commands.deadline(
                                 Commands.waitUntil(() -> shooter.atSpeed(3500, 100))
@@ -423,11 +462,14 @@ public class RobotContainer {
 
         // autoChooser.addOption("drivestraight", driveStraight);
 
+        autoChooser.addOption("Line", Line);
         autoChooser.addOption("Depotjustshoot", DepotjustShoot);
+        autoChooser.addOption("DepotNeutralSHoot", DepotNeutralShoot);
         autoChooser.addOption("Outpostjustshoot", OutpostJustShoot);
         autoChooser.addOption("middleshoot", middleshoot);
         autoChooser.addOption("middleshootdepotsideways", middleshootdepotsideways);
         autoChooser.addOption("middleShootOutpost", middleshootOUTPOST);
+        autoChooser.addOption("OutpostNeutralShoot", OutpostNeutralShoot);
         autoChooser.setDefaultOption("donothing", Commands.none());
         SmartDashboard.putData("Autos/Selector", autoChooser);
     }
