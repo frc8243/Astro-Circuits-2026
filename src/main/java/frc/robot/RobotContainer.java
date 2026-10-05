@@ -290,8 +290,7 @@ public class RobotContainer {
             new Pose2d(7.8, 4.5, Rotation2d.fromDegrees(90));
     private static final Pose2d DEPOT_TRENCH_RUN =
             new Pose2d(8.2, 0.7, Rotation2d.fromDegrees(-90));
-    private static final Pose2d NEUTRAL_POSE =
-            new Pose2d(8.2, 4, Rotation2d.fromDegrees(-90));
+    private static final Pose2d NEUTRAL_POSE = new Pose2d(8.2, 4, Rotation2d.fromDegrees(-90));
 
     private void setupAuton() {
         autoChooser = new SendableChooser<>();
@@ -300,13 +299,14 @@ public class RobotContainer {
                 Commands.sequence(
                         Commands.runOnce(
                                 () -> drivebase.resetOdometryDeferredFlip(LEFT_AUTO_START_POSE)),
-                        drivebase.driveToPoseDeferredWithFlip(DEPOT_TRENCH_FOWARD, 0)
-                                                        .deadlineWith(
+                        drivebase
+                                .driveToPoseDeferredWithFlip(DEPOT_TRENCH_FOWARD, 0)
+                                .deadlineWith(
                                         arm.goToWristAngleCommand(WristAngle.DEPLOY),
                                         intake.in(-1)),
                         drivebase.driveToPoseDeferredWithFlip(NEUTRAL_POSE, 0),
                         Commands.deadline(
-                                Commands.waitUntil(() -> shooter.atSpeed(3500, 100))
+                                Commands.waitUntil(() -> shooter.atSpeed(3100, 100))
                                         .andThen(indexer.in(0.8).alongWith(hopper.in(0.4))),
                                 shooter.spinToRPM(3100)));
 
@@ -316,7 +316,7 @@ public class RobotContainer {
                                 () -> drivebase.resetOdometryDeferredFlip(LEFT_AUTO_START_POSE)),
                         drivebase.driveToPoseDeferredWithFlip(DEPOT_TRENCH_SHOOT_POSE, 0),
                         Commands.deadline(
-                                Commands.waitUntil(() -> shooter.atSpeed(3500, 100))
+                                Commands.waitUntil(() -> shooter.atSpeed(3100, 100))
                                         .andThen(indexer.in(0.8).alongWith(hopper.in(0.4))),
                                 shooter.spinToRPM(3100)));
 
@@ -334,12 +334,13 @@ public class RobotContainer {
                 Commands.sequence(
                         Commands.runOnce(
                                 () -> drivebase.resetOdometryDeferredFlip(RIGHT_AUTO_START_POSE)),
-                                drivebase.driveToPoseDeferredWithFlip(OUTPOST_TRENCH_FOWARD, 0),
-                        drivebase.driveToPoseDeferredWithFlip(OUTPOST_TRENCH_RUN, 0)
-                         .deadlineWith(
+                        drivebase.driveToPoseDeferredWithFlip(OUTPOST_TRENCH_FOWARD, 0),
+                        drivebase
+                                .driveToPoseDeferredWithFlip(OUTPOST_TRENCH_RUN, 0)
+                                .deadlineWith(
                                         arm.goToWristAngleCommand(WristAngle.DEPLOY),
                                         intake.in(-1)),
-                         drivebase.driveToPoseDeferredWithFlip(OUTPOST_TRENCH_FOWARD, 0),
+                        drivebase.driveToPoseDeferredWithFlip(OUTPOST_TRENCH_FOWARD, 0),
                         drivebase.driveToPoseDeferredWithFlip(OUTPOST_TRENCH_SHOOT_POSE, 0),
                         Commands.deadline(
                                 Commands.waitUntil(() -> shooter.atSpeed(3500, 100))

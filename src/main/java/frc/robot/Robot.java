@@ -46,6 +46,7 @@ public class Robot extends TimedRobot {
         // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
         // autonomous chooser on the dashboard.
         m_robotContainer = new RobotContainer();
+        LimelightHelpers.setRewindEnabled("limelight-main", true);
 
         // Create a timer to disable motor brake a few seconds after disable.  This will let the
         // robot stop
@@ -150,4 +151,9 @@ public class Robot extends TimedRobot {
     /** This function is called periodically whilst in simulation. */
     @Override
     public void simulationPeriodic() {}
+
+    @Override
+    public void autonomousExit() {
+        LimelightHelpers.triggerRewindCapture("limelight-main", 20);
+    }
 }
