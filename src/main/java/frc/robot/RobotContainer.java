@@ -205,6 +205,21 @@ public class RobotContainer {
                                     () -> driveDirectAngleKeyboard.driveToPoseEnabled(false)));
         }
 
+        Pose2d target = new Pose2d(new Translation2d(2, 4), Rotation2d.fromDegrees(90));
+
+        SwerveInputStream toTarget = driveAngularVelocity.copy();
+        toTarget.driveToPose(
+                () -> target,
+                new ProfiledPIDController(5, 0, 0, new Constraints(5, 2)),
+                new ProfiledPIDController(
+                        5,
+                        0,
+                        0,
+                        new Constraints(Units.degreesToRadians(360), Units.degreesToRadians(180))));
+        toTarget.driveToPoseEnabled(true);
+
+        driverXbox.leftBumper().whileTrue(drivebase.driveFieldOriented(toTarget));
+
         driverXbox.a().onTrue((Commands.runOnce(drivebase::zeroGyro)));
         // driverXbox.x().onTrue(Commands.runOnce(drivebase::addFakeVisionReading));
         driverXbox.b().onTrue(arm.setEncoderToDeployPosition());
@@ -280,7 +295,7 @@ public class RobotContainer {
     private static final Pose2d LEFT_AUTO_BACK_POSE =
             new Pose2d(4.4, 7.1, Rotation2d.fromDegrees(0));
     // private static final Pose2d LEFT_AUTO_START_POSE_SHOOT =
-    //     new Pose2d(4, 7.4, Rotation2d.fromDegrees(48));
+    // new Pose2d(4, 7.4, Rotation2d.fromDegrees(48));
     private static final Pose2d DEPOT_SIDE_POSE = new Pose2d(1.73, 6, Rotation2d.fromDegrees(180));
     private static final Pose2d DEPOT_SIDE_COLLECT_POSE =
             new Pose2d(1.0, 6, Rotation2d.fromDegrees(180));
@@ -296,29 +311,40 @@ public class RobotContainer {
     private static final Pose2d DEPOT_TRENCH_RUN =
             new Pose2d(7.6, 5.5, Rotation2d.fromDegrees(-90));
     private static final Pose2d NEUTRAL_POSE = new Pose2d(8.2, 4, Rotation2d.fromDegrees(-90));
+    private static final Pose2d RIGHT_STARTING =
+            new Pose2d(1.788, 1.05, Rotation2d.fromDegrees(0));
+    private static final Pose2d RIGHT_STRAIGHT = new Pose2d(6.3, 0.9, Rotation2d.fromDegrees(0));
+    private static final Pose2d RIGHT_BACK = new Pose2d(1.788, 0.9, Rotation2d.fromDegrees(180));
 
     private void setupAuton() {
         autoChooser = new SendableChooser<>();
 
-        Command Line =
+        Command rightStraight =
                 Commands.sequence(
-                        Commands.runOnce(
-                                () -> drivebase.resetOdometryDeferredFlip(LEFT_AUTO_START_POSE)),
-                        drivebase
-                                .driveToPoseDeferredWithFlip(DEPOT_TRENCH_FOWARD, 1)
-                                .deadlineWith(
-                                        arm.goToWristAngleCommand(WristAngle.DEPLOY),
-                                        intake.in(-1)),
-                        drivebase.driveSlowlyToPoseDeferredWithFlip(DEPOT_TRENCH_RUN, 0.2),
-                        drivebase.driveToPoseDeferredWithFlip(DEPOT_TRENCH_FOWARD, 0.8),
-                        drivebase.driveToPoseDeferredWithFlip(LEFT_AUTO_START_POSE, 1),
-                         drivebase.driveToPoseDeferredWithFlip(DEPOT_TRENCH_SHOOT_POSE, 0),
-                        Commands.deadline(
-                                Commands.waitUntil(() -> shooter.atSpeed(3100, 100))
-                                        .andThen(indexer.in(0.8).alongWith(hopper.in(0.4))),
-                                shooter.spinToRPM(3100),
-                                 drivebase.driveToPoseDeferredWithFlip(LEFT_AUTO_START_POSE, 1)
-                                 ));
+                        Commands.runOnce(() -> drivebase.resetOdometryDeferredFlip(RIGHT_STARTING)),
+                        drivebase.driveToPoseDeferredWithFlip(RIGHT_STRAIGHT, 0),
+                        drivebase.driveToPoseDeferredWithFlip(RIGHT_BACK, 0));
+
+        // Command test =
+        //         Commands.sequence(
+        //                 Commands.runOnce(
+        //                         () -> drivebase.resetOdometryDeferredFlip(LEFT_AUTO_START_POSE)),
+        //                 drivebase
+        //                         .driveToPoseDeferredWithFlip(DEPOT_TRENCH_FOWARD, 1)
+        //                         .deadlineWith(
+        //                                 arm.goToWristAngleCommand(WristAngle.DEPLOY),
+        //                                 intake.in(-1)),
+        //                 drivebase.driveSlowlyToPoseDeferredWithFlip(DEPOT_TRENCH_RUN, 0.2),
+        //                 drivebase.driveToPoseDeferredWithFlip(DEPOT_TRENCH_FOWARD, 0.8),
+        //                 drivebase.driveToPoseDeferredWithFlip(LEFT_AUTO_START_POSE, 1),
+        //                 drivebase.driveToPoseDeferredWithFlip(DEPOT_TRENCH_SHOOT_POSE, 0),
+        //                 Commands.deadline(
+        //                         Commands.waitUntil(() -> shooter.atSpeed(3100, 100))
+        //                                 .andThen(indexer.in(0.8).alongWith(hopper.in(0.4))),
+        //                         shooter.spinToRPM(3100).withTimeout(8),
+        //                         drivebase.driveToPoseDeferredWithFlip(LEFT_AUTO_START_POSE, 1),
+        //                         drivebase.driveToPoseDeferredWithFlip(DEPOT_TRENCH_FOWARD,
+        // 0.8)));
 
         Command DepotjustShoot =
                 Commands.sequence(
@@ -478,7 +504,8 @@ public class RobotContainer {
 
         // autoChooser.addOption("drivestraight", driveStraight);
 
-        autoChooser.addOption("Line", Line);
+        // autoChooser.addOption("test", test);
+        autoChooser.addOption("rightStraight", rightStraight);
         // autoChooser.addOption("Depotjustshoot", DepotjustShoot);
         autoChooser.addOption("DepotNeutralShoot", DepotNeutralShoot);
         // autoChooser.addOption("Outpostjustshoot", OutpostJustShoot);
