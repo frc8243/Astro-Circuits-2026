@@ -311,8 +311,7 @@ public class RobotContainer {
     private static final Pose2d DEPOT_TRENCH_RUN =
             new Pose2d(7.6, 5.5, Rotation2d.fromDegrees(-90));
     private static final Pose2d NEUTRAL_POSE = new Pose2d(8.2, 4, Rotation2d.fromDegrees(-90));
-    private static final Pose2d RIGHT_STARTING =
-            new Pose2d(1.788, 1.05, Rotation2d.fromDegrees(0));
+    private static final Pose2d RIGHT_STARTING = new Pose2d(1.788, 1.05, Rotation2d.fromDegrees(0));
     private static final Pose2d RIGHT_STRAIGHT = new Pose2d(6.3, 0.9, Rotation2d.fromDegrees(0));
     private static final Pose2d RIGHT_BACK = new Pose2d(1.788, 0.9, Rotation2d.fromDegrees(180));
 
