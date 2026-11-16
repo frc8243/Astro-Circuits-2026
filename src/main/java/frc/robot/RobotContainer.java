@@ -220,7 +220,7 @@ public class RobotContainer {
 
         driverXbox.leftBumper().whileTrue(drivebase.driveFieldOriented(toTarget));
 
-        driverXbox.a().onTrue((Commands.runOnce(drivebase::zeroGyro)));
+        driverXbox.a().onTrue((Commands.runOnce(drivebase::zeroGyroWithAlliance)));
         // driverXbox.x().onTrue(Commands.runOnce(drivebase::addFakeVisionReading));
         driverXbox.b().onTrue(arm.setEncoderToDeployPosition());
         driverXbox.y().onTrue(hopper.in(0.0));

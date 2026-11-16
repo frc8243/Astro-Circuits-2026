@@ -15,6 +15,7 @@ public class Vision {
     private int acceptCount = 0;
     private int rejectCount = 0;
     private final StructPublisher<Pose2d> posePublisher;
+    private static int[] TRUSTED_TAGS = {2, 3, 4, 5, 8, 9, 10, 11, 18, 19, 20, 21, 24, 25, 26, 27};
 
     public Vision(String limelightName) {
         this.limelightName = limelightName;
@@ -29,6 +30,8 @@ public class Vision {
                 0.0, // roll (degrees)
                 0.0, // pitch (degrees, + = tilted back)
                 0.0); // yaw (degrees, + = rotated left)
+
+        LimelightHelpers.SetFiducialIDFiltersOverride(limelightName, TRUSTED_TAGS);
 
         posePublisher =
                 NetworkTableInstance.getDefault()
