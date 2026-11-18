@@ -104,16 +104,18 @@ public class Vision {
         // use Limelight's own stddevs instead of hardcoded values
         // layout: [MT1x, MT1y, MT1z, MT1roll, MT1pitch, MT1yaw, MT2x, MT2y, MT2z, MT2roll,
         // MT2pitch, MT2yaw]
-        var stddevs = LimelightHelpers.getLimelightNTDoubleArray(limelightName, "stddevs");
-        if (stddevs == null || stddevs.length < 8) {
-            reject("missing stddevs");
-            return;
-        }
+        // var stddevs = LimelightHelpers.getLimelightNTDoubleArray(limelightName, "stddevs");
+        // if (stddevs == null || stddevs.length < 8) {
+        //     reject("missing stddevs");
+        //     return;
+       // };
+    
 
         drive.addVisionMeasurement(
                 est.pose,
                 est.timestampSeconds,
-                VecBuilder.fill(stddevs[6], stddevs[7], Double.POSITIVE_INFINITY));
+               // VecBuilder.fill(stddevs[6], stddevs[7], Double.POSITIVE_INFINITY));
+                VecBuilder.fill(0.7,0.7, Double.POSITIVE_INFINITY));
 
         // SmartDashboard.putBoolean("vision/measurementAccepted", true);
         // SmartDashboard.putString("vision/rejectReason", "");
