@@ -108,14 +108,13 @@ public class Vision {
         // if (stddevs == null || stddevs.length < 8) {
         //     reject("missing stddevs");
         //     return;
-       // };
-    
+        // };
 
         drive.addVisionMeasurement(
                 est.pose,
                 est.timestampSeconds,
-               // VecBuilder.fill(stddevs[6], stddevs[7], Double.POSITIVE_INFINITY));
-                VecBuilder.fill(0.7,0.7, Double.POSITIVE_INFINITY));
+                // VecBuilder.fill(stddevs[6], stddevs[7], Double.POSITIVE_INFINITY));
+                VecBuilder.fill(0.7, 0.7, Double.POSITIVE_INFINITY));
 
         // SmartDashboard.putBoolean("vision/measurementAccepted", true);
         // SmartDashboard.putString("vision/rejectReason", "");

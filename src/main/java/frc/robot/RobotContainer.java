@@ -205,12 +205,13 @@ public class RobotContainer {
                                     () -> driveDirectAngleKeyboard.driveToPoseEnabled(false)));
         }
 
-        Pose2d target = new Pose2d(new Translation2d(2, 4), Rotation2d.fromDegrees(90));
+        Pose2d target = new Pose2d(new Translation2d(4.334, 0.884), Rotation2d.fromDegrees(180));
+        Pose2d scoring = new Pose2d(new Translation2d(1.806, 1.069), Rotation2d.fromDegrees(180));
 
         SwerveInputStream toTarget = driveAngularVelocity.copy();
         toTarget.driveToPose(
                 () -> target,
-                new ProfiledPIDController(5, 0, 0, new Constraints(5, 2)),
+                new ProfiledPIDController(5, 0, 0, new Constraints(2, 2)),
                 new ProfiledPIDController(
                         5,
                         0,
@@ -219,6 +220,19 @@ public class RobotContainer {
         toTarget.driveToPoseEnabled(true);
 
         driverXbox.leftBumper().whileTrue(drivebase.driveFieldOriented(toTarget));
+
+        SwerveInputStream toScoring = driveAngularVelocity.copy();
+        toScoring.driveToPose(
+                () -> scoring,
+                new ProfiledPIDController(5, 0, 0, new Constraints(2, 1)),
+                new ProfiledPIDController(
+                        5,
+                        0,
+                        0,
+                        new Constraints(Units.degreesToRadians(360), Units.degreesToRadians(180))));
+        toTarget.driveToPoseEnabled(true);
+
+        driverXbox.rightBumper().whileTrue(drivebase.driveFieldOriented(toScoring));
 
         driverXbox.a().onTrue((Commands.runOnce(drivebase::zeroGyroWithAlliance)));
         // driverXbox.x().onTrue(Commands.runOnce(drivebase::addFakeVisionReading));
@@ -255,11 +269,11 @@ public class RobotContainer {
                                 Commands.waitUntil(() -> shooter.atSpeed(3100, 100))
                                         .andThen(indexer.in(0.8).alongWith(hopper.in(0.4))),
                                 shooter.spinToRPM(3100)));
-        driverXbox
-                .rightBumper()
-                .whileTrue(
-                        drivebase.aimAtHub(
-                                () -> -driverXbox.getLeftY(), () -> -driverXbox.getLeftX()));
+        // driverXbox
+        //         .rightBumper()
+        //         .whileTrue(
+        //                 drivebase.aimAtHub(
+        //                         () -> -driverXbox.getLeftY(), () -> -driverXbox.getLeftX()));
 
         // operatorXbox
         // .y()
