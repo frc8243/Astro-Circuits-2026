@@ -205,36 +205,27 @@ public class RobotContainer {
                                     () -> driveDirectAngleKeyboard.driveToPoseEnabled(false)));
         }
 
-        Pose2d target = new Pose2d(new Translation2d(4.334, 0.884), Rotation2d.fromDegrees(180));
-        Pose2d scoring = new Pose2d(new Translation2d(1.806, 1.069), Rotation2d.fromDegrees(180));
+        Pose2d target8 = new Pose2d(new Translation2d(4.334, 0.884), Rotation2d.fromDegrees(180));
+        Pose2d scoring8 = new Pose2d(new Translation2d(1.806, 1.069), Rotation2d.fromDegrees(180));
 
-        SwerveInputStream toTarget = driveAngularVelocity.copy();
-        toTarget.driveToPose(
-                () -> target,
-                new ProfiledPIDController(5, 0, 0, new Constraints(2, 2)),
-                new ProfiledPIDController(
-                        5,
-                        0,
-                        0,
-                        new Constraints(Units.degreesToRadians(360), Units.degreesToRadians(180))));
-        toTarget.driveToPoseEnabled(true);
+        Pose2d target7 = new Pose2d(new Translation2d(4.334, 3.346), Rotation2d.fromDegrees(180));
+        Pose2d scoring7 = new Pose2d(new Translation2d(1.806, 2.731), Rotation2d.fromDegrees(180));
 
-        driverXbox.leftBumper().whileTrue(drivebase.driveFieldOriented(toTarget));
+        driverXbox
+                .leftBumper()
+                .whileTrue(drivebase.driveToPoseStream(driveAngularVelocity, target8, 2, 2));
+        driverXbox
+                .rightBumper()
+                .whileTrue(drivebase.driveToPoseStream(driveAngularVelocity, scoring8, 2, 2));
 
-        SwerveInputStream toScoring = driveAngularVelocity.copy();
-        toScoring.driveToPose(
-                () -> scoring,
-                new ProfiledPIDController(5, 0, 0, new Constraints(2, 1)),
-                new ProfiledPIDController(
-                        5,
-                        0,
-                        0,
-                        new Constraints(Units.degreesToRadians(360), Units.degreesToRadians(180))));
-        toTarget.driveToPoseEnabled(true);
+        driverXbox
+                .leftTrigger()
+                .whileTrue(drivebase.driveToPoseStream(driveAngularVelocity, target7, 2, 2));
+        driverXbox
+                .rightTrigger()
+                .whileTrue(drivebase.driveToPoseStream(driveAngularVelocity, scoring7, 2, 2));
 
-        driverXbox.rightBumper().whileTrue(drivebase.driveFieldOriented(toScoring));
-
-        driverXbox.a().onTrue((Commands.runOnce(drivebase::zeroGyroWithAlliance)));
+        // driverXbox.a().onTrue((Commands.runOnce(drivebase::zeroGyroWithAlliance)));
         // driverXbox.x().onTrue(Commands.runOnce(drivebase::addFakeVisionReading));
         driverXbox.b().onTrue(arm.setEncoderToDeployPosition());
         driverXbox.y().onTrue(hopper.in(0.0));

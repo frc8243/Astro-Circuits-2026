@@ -21,6 +21,7 @@ import com.pathplanner.lib.util.FlippingUtil;
 import com.pathplanner.lib.util.swerve.SwerveSetpoint;
 import com.pathplanner.lib.util.swerve.SwerveSetpointGenerator;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -28,6 +29,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.Trajectory;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
@@ -53,6 +55,7 @@ import org.json.simple.parser.ParseException;
 import swervelib.SwerveController;
 import swervelib.SwerveDrive;
 import swervelib.SwerveDriveTest;
+import swervelib.SwerveInputStream;
 import swervelib.math.SwerveMath;
 import swervelib.parser.SwerveControllerConfiguration;
 import swervelib.parser.SwerveDriveConfiguration;
@@ -357,6 +360,27 @@ public class SwerveSubsystem extends SubsystemBase {
                     boolean red = isRedAlliance();
                     final Pose2d targetPose = red ? FlippingUtil.flipFieldPose(pose) : pose;
                     return AutoBuilder.pathfindToPose(targetPose, constraints, goalEndVelocity);
+                },
+                Set.of(this));
+    }
+
+    public Command driveToPoseStream(
+            SwerveInputStream DriverInput, Pose2d target, double maxSpeed, double maxAccel) {
+        return new DeferredCommand(
+                () -> {
+                    SwerveInputStream stream = DriverInput.copy();
+                    stream.driveToPose(
+                            () -> target,
+                            new ProfiledPIDController(5, 0, 0, new Constraints(maxSpeed, maxAccel)),
+                            new ProfiledPIDController(
+                                    5,
+                                    0,
+                                    0,
+                                    new Constraints(
+                                            Units.degreesToRadians(360),
+                                            Units.degreesToRadians(180))));
+                    stream.driveToPoseEnabled(true);
+                    return driveFieldOriented(stream);
                 },
                 Set.of(this));
     }

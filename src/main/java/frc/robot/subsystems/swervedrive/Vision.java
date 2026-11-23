@@ -15,7 +15,11 @@ public class Vision {
     private int acceptCount = 0;
     private int rejectCount = 0;
     private final StructPublisher<Pose2d> posePublisher;
-    private static int[] TRUSTED_TAGS = {2, 3, 4, 5, 8, 9, 10, 11, 18, 19, 20, 21, 24, 25, 26, 27};
+    private static int[] TRUSTED_TAGS = {
+        2, 3, 4, 5, 7, 8, 9, 10, 11, 18, 19, 20, 21, 24, 25, 26, 27
+    };
+
+    // private static int[] TRUSTED_TAGS = {7};
 
     public Vision(String limelightName) {
         this.limelightName = limelightName;
